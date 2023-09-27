@@ -1,0 +1,10 @@
+.log
+.temp
+.output/
+.results/
+.snakemake/
+.vscode/
+results/
+data/
+config/
+workflow/envs/
