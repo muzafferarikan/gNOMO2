@@ -82,7 +82,7 @@ rule download_silvadb:
 rule dada2:
 	input:
 		silva_db = "results/intermediate_files/silva_db/silva_nr99_v138.1_train_set.fa.gz",
-		samples = expand("results/intermediate_files/merged/AS/AS_{sample}.extendedFrags.fastq", sample=config["AS_samples"])
+		samples = expand("results/intermediate_files/merged/AS/{sample}.extendedFrags.fastq", sample=config["AS_samples"])
 	output:
 		d1 = "results/intermediate_files/top_taxa.txt",
 		d2 = "results/final/as_abundance_plot.svg"
