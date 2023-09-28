@@ -369,7 +369,7 @@ rule build_msgf_db:
 	conda:
 		srcdir("../envs/msgfplus.yaml")
 	shell:
-		"msgf_plus -Xmx8000M edu.ucsd.msjava.msdbsearch.BuildSA -d {input}"
+		"msgf_plus -Xmx16000M edu.ucsd.msjava.msdbsearch.BuildSA -d {input}"
 
 rule run_msgf:
 	input:

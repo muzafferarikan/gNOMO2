@@ -391,7 +391,7 @@ rule build_msgf_db:
 	conda:
 		srcdir("../envs/msgfplus.yaml")
 	shell:
-		"msgf_plus -Xmx3000M edu.ucsd.msjava.msdbsearch.BuildSA -d {input}"
+		"msgf_plus -Xmx16000M edu.ucsd.msjava.msdbsearch.BuildSA -d {input}"
 
 rule run_msgf:
 	input:
@@ -406,7 +406,7 @@ rule run_msgf:
 		params = config["parameters"]["msgf"]
 	shell:
 		"""
-		msgf_plus -Xmx30000M -s {input.input} -d {input.prot_db} {params.params} -o {output.output}
+		msgf_plus -Xmx200g -s {input.input} -d {input.prot_db} {params.params} -o {output.output}
 		"""
 
 rule mzid_to_tsv:
