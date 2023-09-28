@@ -30,6 +30,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 metadata <- read.delim("resources/metadata.txt", header=TRUE, sep="\t")
 rownames(metadata) <- metadata$SampleID
 
+
 # Get merged amplicon sequencing data files 
 merged_as <- list.files(
   path = "results/intermediate_files/merged/AS",
@@ -38,7 +39,7 @@ merged_as <- list.files(
 )
 
 # Extract sample names 
-sample_names <- sub("^results/intermediate_files/merged/AS/AS_(.*?)\\.extendedFrags\\.fastq$", "\\1", merged_as)
+sample_names <- sub("^results/intermediate_files/merged/AS/(.*?)\\.extendedFrags\\.fastq$", "\\1", merged_as)
 
 # Assign the filenames for the filtered files.
 filts <- file.path("results/intermediate_files/dada_filtered", paste0(sample_names, "_filt.fastq.gz"))

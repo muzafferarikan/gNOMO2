@@ -14,9 +14,9 @@ rule all:
 		top_taxa_and_host_names = "results/intermediate_files/top_taxa_host.txt",
 		as_abundance_plot = "results/final/as_abundance_plot.svg",
 		as_based_database = "results/final/prot_db/as_based_database.fa",
-		pep_abundance_table = "results/diff_abun/MP/pep_abundance_table.txt",
-		peptide_list = "results/diff_abun/MP/unipept_list.txt",
-		unipept_results = "results/diff_abun/MP/unipept_results.csv",
+		pep_abundance_table = "results/final/diff_abun/MP/pep_abundance_table.txt",
+		peptide_list = "results/final/diff_abun/MP/unipept_list.txt",
+		unipept_results = "results/final/diff_abun/MP/unipept_results.csv",
 		combi_results = "results/final/combi_plot.png"
 
 rule trimPE:

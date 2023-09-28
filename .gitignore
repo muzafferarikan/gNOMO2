@@ -10,3 +10,4 @@ config/
 workflow/envs/
 resources/
 gnomo_slurm_template.sh
+log/
