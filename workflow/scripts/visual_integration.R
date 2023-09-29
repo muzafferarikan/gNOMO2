@@ -12,42 +12,38 @@ library(tidyverse)
 library(microbiome)
 library(optparse)
 
-# Call the functions
-source("workflow/scripts/functions_v2.R")
-
 # Read metadata table, config file and unipept and emapper result files
 metadata <- read.table("resources/metadata.txt", header=TRUE, stringsAsFactors = FALSE)
-metadata
 metadata <- column_to_rownames(metadata, var = "SampleID")
+metadata$Group <- as.factor(metadata$Group)
 metadata2 <- sample_data(metadata)
-metadata2
 
 # Read snakemake config file
-config <- yaml::yaml.load_file("config/config_tanca.yaml")
+config <- yaml::yaml.load_file("config/config.yaml")
 omics <- config$omics_combination
 
 if (omics == 2) {
   # Read MG taxa abundance table
   as_physeq <- readRDS("results/final/as_physeq.rds")
-  as_physeq_genus <- aggregate_taxa(as_, level = "Genus")
+  as_physeq_genus <- aggregate_taxa(as_physeq, level = "Genus")
   
   # Read MP taxa abundance table
   ec_abundance <- read.delim("results/final/diff_abun/MP/pep_abundance_table.txt", header=TRUE, sep="\t")
   ec_abundance <- column_to_rownames(ec_abundance, var = "peptide")
   ec_abundance2 <- otu_table(ec_abundance, taxa_are_rows = TRUE)
-  
+
   # merge mp phyloseq object
   mp_physeq <- merge_phyloseq(ec_abundance2, metadata2)
   
   # Perform visual integration by combi analysis
   microMetaboIntConstr <- combi(
-    list(microbiome = as_physeq_genus_physeq, metaproteomics = mp_physeq),
+    list(microbiome = as_physeq_genus, metaproteomics = mp_physeq),
     distributions = c("quasi", "gaussian"),
     compositional = c(TRUE, FALSE),
     logTransformGaussian = FALSE,
     covariates = metadata,
     verbose = TRUE,
-    prevCutOff = 0.3,
+    prevCutOff = 0.01,
     allowMissingness = TRUE
   )
   
@@ -147,6 +143,6 @@ if (omics == 2) {
 }
 
 # Set up graphics device for PNG output
-png("results/final/combi_plot.png")
+png("results/final/combi_plot.png", width=300, height=200, res=600)
 plot(microMetaboIntConstr)
 dev.off()

@@ -17,6 +17,7 @@ rule all:
 		pep_abundance_table = "results/final/diff_abun/MP/pep_abundance_table.txt",
 		peptide_list = "results/final/diff_abun/MP/unipept_list.txt",
 		unipept_results = "results/final/diff_abun/MP/unipept_results.csv",
+		maaslin2_results = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
 		combi_results = "results/final/combi_plot.png"
 
 rule trimPE:
@@ -199,7 +200,7 @@ rule mzid_to_tsv:
 	conda:
 		srcdir("../envs/msgfplus.yaml") 
 	shell:
-		"msgf_plus edu.ucsd.msjava.ui.MzIDToTsv -Xmx3000M -i {input.input} -o {output.output}"
+		"msgf_plus edu.ucsd.msjava.ui.MzIDToTsv -Xmx20g -i {input.input} -o {output.output}"
 
 rule process_pept:
 	input:
@@ -230,7 +231,7 @@ rule run_unipept:
 	conda:
 		srcdir("../envs/pyteomics.yaml")
 	shell:
-		"python workflow/scripts/MA_unipept-get-peptinfo.py -i {input.input} -o {output}"
+		"python workflow/scripts/unipept_get_peptinfo.py -i {input.input} -o {output}"
 
 rule diff_abund_MP:
 	input:
@@ -238,7 +239,7 @@ rule diff_abund_MP:
 		metadata = "resources/metadata.txt",
 		taxonomy = "results/final/diff_abun/MP/unipept_results.csv"
 	output:
-		"results/diff_abun/taxa-maaslin2-MP/maaslin2.log"
+		"results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log"
 	params:
 		outdir = "results/diff_abun/taxa-maaslin2-MP/",
 		param1 = config["parameters"]["group"],
@@ -246,7 +247,7 @@ rule diff_abund_MP:
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/tax_diff_abun_mp.R --group {params.param1} --taxa_rank {params.param2}"
+		"Rscript workflow/scripts/taxa_diff_abun_mp.R --group {params.param1} --taxa_rank {params.param2}"
 
 rule combi:
 	input:

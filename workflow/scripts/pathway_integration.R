@@ -257,7 +257,7 @@ metadata <- read.delim("resources/metadata.txt", header=TRUE, sep="\t")
 rownames(metadata) <- metadata$SampleID
 
 # Read snakemake config file 
-config <- yaml::yaml.load_file("config/config_tanca.yaml")
+config <- yaml::yaml.load_file("config/config.yaml")
 omics <- config$omics_combination
 
 # Prepare KEGG id - pathway table

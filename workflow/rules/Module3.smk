@@ -426,7 +426,7 @@ rule run_unipept:
 	conda:
 		srcdir("../envs/pyteomics.yaml")
 	shell:
-		"python workflow/scripts/MA_unipept-get-peptinfo.py -i {input.input} -o {output}"
+		"python workflow/scripts/unipept_get_peptinfo.py -i {input.input} -o {output}"
 
 rule diff_abund_MP:
 	input:
