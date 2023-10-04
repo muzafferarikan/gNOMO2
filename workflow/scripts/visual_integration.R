@@ -12,11 +12,21 @@ library(tidyverse)
 library(microbiome)
 library(optparse)
 
+commandArgs(trailing=TRUE)
+
+option_list <- list( 
+  make_option(c("-g", "--group"), type="character", default="Group", 
+              help="enter group name"))
+
+opt <- parse_args(OptionParser(option_list=option_list))
+
 # Read metadata table, config file and unipept and emapper result files
-metadata <- read.table("resources/metadata.txt", header=TRUE, stringsAsFactors = FALSE)
-metadata <- column_to_rownames(metadata, var = "SampleID")
-metadata$Group <- as.factor(metadata$Group)
-metadata2 <- sample_data(metadata)
+metadata <- read.table("resources/metadata.txt", header=TRUE, sep = "\t", fileEncoding = "UTF-8")
+metadata2 <- column_to_rownames(metadata, var = "SampleID")
+#metadata2$DiseaseStage <- NULL
+metadata2$Group <- as.factor(metadata2$Group)
+#metadata2$Stage <- NULL
+metadata3 <- sample_data(metadata2)
 
 # Read snakemake config file
 config <- yaml::yaml.load_file("config/config.yaml")
@@ -33,7 +43,7 @@ if (omics == 2) {
   ec_abundance2 <- otu_table(ec_abundance, taxa_are_rows = TRUE)
 
   # merge mp phyloseq object
-  mp_physeq <- merge_phyloseq(ec_abundance2, metadata2)
+  mp_physeq <- merge_phyloseq(ec_abundance2, metadata3)
   
   # Perform visual integration by combi analysis
   microMetaboIntConstr <- combi(
@@ -41,7 +51,7 @@ if (omics == 2) {
     distributions = c("quasi", "gaussian"),
     compositional = c(TRUE, FALSE),
     logTransformGaussian = FALSE,
-    covariates = metadata,
+    covariates = metadata2,
     verbose = TRUE,
     prevCutOff = 0.01,
     allowMissingness = TRUE
@@ -60,8 +70,8 @@ if (omics == 2) {
   ec_abundance2 <- otu_table(ec_abundance, taxa_are_rows = TRUE)
   
   # merge phyloseq objects
-  mg_physeq <- merge_phyloseq(mg_taxa_abundance2, metadata2)
-  mp_physeq <- merge_phyloseq(ec_abundance2, metadata2)
+  mg_physeq <- merge_phyloseq(mg_taxa_abundance2, metadata3)
+  mp_physeq <- merge_phyloseq(ec_abundance2, metadata3)
   
   # Perform visual integration by combi analysis
   microMetaboIntConstr <- combi(
@@ -69,7 +79,7 @@ if (omics == 2) {
     distributions = c("quasi", "gaussian"),
     compositional = c(TRUE, FALSE),
     logTransformGaussian = FALSE,
-    covariates = metadata,
+    covariates = metadata2,
     verbose = TRUE,
     prevCutOff = 0.3,
     allowMissingness = TRUE
@@ -91,15 +101,15 @@ if (omics == 2) {
   mt_taxa_abundance2 <- otu_table(mt_taxa_abundance, taxa_are_rows = TRUE)
   
   # merge phyloseq objects
-  mg_physeq <- merge_phyloseq(mg_taxa_abundance2, metadata2)
-  mt_physeq <- merge_phyloseq(mt_taxa_abundance2, metadata2)
+  mg_physeq <- merge_phyloseq(mg_taxa_abundance2, metadata3)
+  mt_physeq <- merge_phyloseq(mt_taxa_abundance2, metadata3)
   
   # Perform visual integration by combi analysis
   microMetaboIntConstr <- combi(
     list(microbiome = mg_physeq, microbiome = mt_physeq),
     distributions = c("quasi", "quasi"),
     compositional = c(TRUE, TRUE),
-    covariates = metadata,
+    covariates = metadata2,
     verbose = TRUE,
     prevCutOff = 0.1,
     allowMissingness = TRUE
@@ -124,9 +134,9 @@ if (omics == 2) {
   ec_abundance2 <- otu_table(ec_abundance, taxa_are_rows = TRUE)
   
   # merge phyloseq objects
-  mg_physeq <- merge_phyloseq(mg_taxa_abundance2, metadata2)
-  mt_physeq <- merge_phyloseq(mt_taxa_abundance2, metadata2)
-  mp_physeq <- merge_phyloseq(ec_abundance2, metadata2)
+  mg_physeq <- merge_phyloseq(mg_taxa_abundance2, metadata3)
+  mt_physeq <- merge_phyloseq(mt_taxa_abundance2, metadata3)
+  mp_physeq <- merge_phyloseq(ec_abundance2, metadata3)
   
   # Perform visual integration by combi analysis
   microMetaboIntConstr <- combi(
@@ -134,7 +144,7 @@ if (omics == 2) {
     distributions = c("quasi", "quasi", "gaussian"),
     compositional = c(TRUE, TRUE, FALSE),
     logTransformGaussian = FALSE,
-    covariates = metadata,
+    covariates = metadata2,
     verbose = TRUE,
     prevCutOff = 0.1,
     allowMissingness = TRUE
@@ -143,6 +153,6 @@ if (omics == 2) {
 }
 
 # Set up graphics device for PNG output
-png("results/final/combi_plot.png", width=300, height=200, res=600)
-plot(microMetaboIntConstr)
+png("results/final/combi_plot.png", width=4800, height=4800, res=600)
+plot(microMetaboIntConstr, samDf = metadata2, samCol = metadata2[[opt$group]])
 dev.off()

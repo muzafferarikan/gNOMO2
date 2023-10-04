@@ -256,7 +256,9 @@ rule combi:
 		abundance_as = "results/final/as_physeq.rds"
 	output:
 		plot = "results/final/combi_plot.png"
+	params:
+		param1 = config["parameters"]["group"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/visual_integration.R"
+		"Rscript workflow/scripts/visual_integration.R --group {params.param1}"
