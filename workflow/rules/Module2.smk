@@ -12,14 +12,14 @@ rule all:
 	input:
 		silvadb = "results/intermediate_files/silva_db/silva_nr99_v138.1_train_set.fa.gz", 
 		top_taxa_and_host_names = "results/intermediate_files/top_taxa_host.txt",
-		as_abundance_plot = "results/final/as_abundance_plot.svg",
+		as_abundance_plot = "results/final/AS/as_abundance_plot.svg",
 		as_based_database = "results/final/prot_db/as_based_database.fa",
 		diff_abun_as = "results/final/diff_abun/taxa-maaslin2-AS/maaslin2.log",
-		pep_abundance_table = "results/final/diff_abun/MP/pep_abundance_table.txt",
-		peptide_list = "results/final/diff_abun/MP/unipept_list.txt",
-		unipept_results = "results/final/diff_abun/MP/unipept_results.csv",
+		pep_abundance_table = "results/final/MP/pep_abundance_table.txt",
+		peptide_list = "results/final/MP/unipept_list.txt",
+		unipept_results = "results/final/MP/unipept_results.csv",
 		diff_abun_mp = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
-		combi_results = "results/final/combi_plot.png"
+		combi_results = "results/final/integrated/combi_plot.png"
 
 rule trimPE:
 	input:
@@ -94,8 +94,8 @@ rule dada2:
 		samples = expand("results/intermediate_files/merged/AS/{sample}.extendedFrags.fastq", sample=config["AS_samples"])
 	output:
 		d1 = "results/intermediate_files/top_taxa.txt",
-		d2 = "results/final/as_abundance_plot.svg",
-		d3 = "results/final/as_physeq.rds",
+		d2 = "results/final/AS/as_abundance_plot.svg",
+		d3 = "results/final/AS/as_physeq.rds",
 		d4 = "results/final/diff_abun/taxa-maaslin2-AS/maaslin2.log"
 	params:
 		param1 = config["parameters"]["group"],
@@ -218,8 +218,8 @@ rule unipept_prep:
 	input:
 		input = expand("results/intermediate_files/msgf_plus/peptides_{spectra}.txt", spectra=config["MP_samples"])
 	output:
-		output1 = "results/final/diff_abun/MP/unipept_list.txt",
-		output2 = "results/final/diff_abun/MP/pep_abundance_table.txt"
+		output1 = "results/final/MP/unipept_list.txt",
+		output2 = "results/final/MP/pep_abundance_table.txt"
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
@@ -227,9 +227,9 @@ rule unipept_prep:
 
 rule run_unipept:
 	input:
-		input="results/final/diff_abun/MP/unipept_list.txt"
+		input="results/final/MP/unipept_list.txt"
 	output:
-		output="results/final/diff_abun/MP/unipept_results.csv"
+		output="results/final/MP/unipept_results.csv"
 	conda:
 		srcdir("../envs/pyteomics.yaml")
 	shell:
@@ -237,9 +237,9 @@ rule run_unipept:
 
 rule diff_abund_MP:
 	input:
-		abundance = "results/final/diff_abun/MP/pep_abundance_table.txt",
+		abundance = "results/final/MP/pep_abundance_table.txt",
 		metadata = "resources/metadata.txt",
-		taxonomy = "results/final/diff_abun/MP/unipept_results.csv"
+		taxonomy = "results/final/MP/unipept_results.csv"
 	output:
 		"results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log"
 	params:
@@ -253,11 +253,11 @@ rule diff_abund_MP:
 
 rule combi:
 	input:
-		abundance_mp = "results/final/diff_abun/MP/pep_abundance_table.txt",
+		abundance_mp = "results/final/MP/pep_abundance_table.txt",
 		metadata = "resources/metadata.txt",
-		abundance_as = "results/final/as_physeq.rds"
+		abundance_as = "results/final/AS/as_physeq.rds"
 	output:
-		plot = "results/final/combi_plot.png"
+		plot = "results/final/integrated/combi_plot.png"
 	params:
 		param1 = config["parameters"]["group"]
 	conda:

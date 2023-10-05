@@ -107,7 +107,8 @@ topn_taxa_2 <- gsub("Other", "", gsub("Unknown", "", topn_taxa))
 topn_taxa_3 <- as.character(topn_taxa_2[topn_taxa_2 != ""])
 
 # perform differential abundance analysis
-otu <- as(otu_table(ps_clean),"matrix") %>% as.data.frame()
+ps_clean_rank <- aggregate_taxa(ps_clean, level = opt$taxa_rank)
+otu <- as(otu_table(ps_clean_rank),"matrix") %>% as.data.frame()
 
 maaslin_results = Maaslin2::Maaslin2(input_data = otu,
                                      input_metadata = metadata,
@@ -117,12 +118,12 @@ maaslin_results = Maaslin2::Maaslin2(input_data = otu,
                                      )
 
 # Write output files (abundance barplot, phyloseq object, and most abundant taxa names)
-svg("results/final/as_abundance_plot.svg")
+svg("results/final/AS/as_abundance_plot.svg")
 abun_plot
 dev.off()
 
 write.table(topn_taxa_3, "results/intermediate_files/top_taxa.txt", quote = FALSE, col.names = FALSE, row.names = FALSE, sep = "\t")
 
-saveRDS(ps_clean, "results/final/as_physeq.rds")
+saveRDS(ps_clean, "results/final/AS/as_physeq.rds")
 
 print("Completed successfully.")

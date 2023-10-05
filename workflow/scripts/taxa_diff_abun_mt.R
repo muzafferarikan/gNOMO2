@@ -67,7 +67,7 @@ merged_df2[is.na(merged_df2)] <- 0
 merged_df2$taxa <- paste(merged_df2$taxa, "_MT", sep = "")
 
 write.table(merged_df2,
-            file = "results/final/diff_abun/MT/mt_taxa_abundance.txt",
+            file = "results/final/MT/mt_taxa_abundance.txt",
             sep = "\t",
             quote = FALSE,
             row.names = FALSE

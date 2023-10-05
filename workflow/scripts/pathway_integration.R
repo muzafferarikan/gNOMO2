@@ -23,7 +23,6 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list=option_list))
 
-
 ################################ FUNCTIONS ####################################
 
 # Function for filling empty cells in result files with "unclassified"
@@ -193,7 +192,7 @@ perform_pathway_analysis <- function(omics, metadata) {
   
   if (omics == 3) {
     result_mg <- process_seq("MG")
-    result_mp <- process_ec_abundance("results/final/diff_abun/MP/ec_abundance.txt", metadata)
+    result_mp <- process_ec_abundance("results/final/MP/ec_abundance.txt", metadata)
     common_kegg <- intersect(row.names(result_mg), row.names(result_mp))
     result_to_merge_mg <- result_mg[row.names(result_mg) %in% common_kegg, ]
     result_to_merge_mp <- result_mp[row.names(result_mp) %in% common_kegg, ]
@@ -215,7 +214,7 @@ perform_pathway_analysis <- function(omics, metadata) {
   } else if (omics >= 5) {
     result_mg <- process_seq("MG")
     result_mt <- process_seq("MT")
-    result_mp <- process_ec_abundance("results/final/diff_abun/MP/ec_abundance.txt", metadata)
+    result_mp <- process_ec_abundance("results/final/MP/ec_abundance.txt", metadata)
     common_kegg <- Reduce(intersect, list(rownames(result_mg), rownames(result_mt), rownames(result_mp)))
     result_to_merge_mg <- result_mg[row.names(result_mg) %in% common_kegg, ]
     result_to_merge_mt <- result_mt[row.names(result_mt) %in% common_kegg, ]
@@ -235,7 +234,7 @@ perform_pathway_analysis <- function(omics, metadata) {
   rownames(modified_subset) <- rownames(subset_merged_results_common)
               
   pathways <- ko2path[ko2path$KEGG %in% common_kegg, "V1"] %>% unique()
-  setwd("results/final/pathview")
+  setwd("results/final/integrated/pathview")
   pv.out <- pathview(
     gene.data = modified_subset,
     pathway.id = pathways,
@@ -250,7 +249,7 @@ perform_pathway_analysis <- function(omics, metadata) {
 
 
 # Create output directory
-dir.create("results/final/pathview")
+dir.create("results/final/integrated/pathview")
 
 # Read metadata table, config file and unipept and emapper result files
 metadata <- read.delim("resources/metadata.txt", header=TRUE, sep="\t")
@@ -267,7 +266,7 @@ ko2path <- as.data.frame(ko2path) %>%
 ko2path$KEGG <- gsub("ko.", "", ko2path$KEGG)
 ko2path$V1 <- gsub("path:map", "", ko2path$V1)
 
-sink("results/final/pathview/log.txt", append = TRUE)
+sink("results/final/integrated/pathview/log.txt", append = TRUE)
 
 
 # Perform integrated pathway analysis

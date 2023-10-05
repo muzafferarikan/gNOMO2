@@ -9,7 +9,7 @@ rule all:
 	input:
 		silvadb = "results/intermediate_files/silva_db/silva_nr99_v138.1_train_set.fa.gz", 
 		top_taxa_and_host_names = "results/intermediate_files/top_taxa_host.txt",
-		as_abundance_plot = "results/final/as_abundance_plot.svg",
+		as_abundance_plot = "results/final/AS/as_abundance_plot.svg",
 		as_based_database = "results/final/prot_db/as_based_database.fa",
 		diff_abun_as = "results/final/diff_abun/taxa-maaslin2-AS/maaslin2.log"
 
@@ -86,8 +86,8 @@ rule dada2:
 		samples = expand("results/intermediate_files/merged/AS/{sample}.extendedFrags.fastq", sample=config["AS_samples"])
 	output:
 		d1 = "results/intermediate_files/top_taxa.txt",
-		d2 = "results/final/as_abundance_plot.svg",
-		d3 = "results/final/as_physeq.rds",
+		d2 = "results/final/AS/as_abundance_plot.svg",
+		d3 = "results/final/AS/as_physeq.rds",
 		d4 = "results/final/diff_abun/taxa-maaslin2-AS/maaslin2.log"
 	params:
 		param1 = config["parameters"]["group"],

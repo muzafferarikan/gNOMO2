@@ -20,6 +20,8 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list=option_list))
 
+dir.create("results/final/integrated")
+
 # Read metadata table, config file and unipept and emapper result files
 metadata <- read.table("resources/metadata.txt", header=TRUE, sep = "\t", fileEncoding = "UTF-8")
 metadata2 <- column_to_rownames(metadata, var = "SampleID")
@@ -34,7 +36,7 @@ omics <- config$omics_combination
 
 if (omics == 2) {
   # Read MG taxa abundance table
-  as_physeq <- readRDS("results/final/as_physeq.rds")
+  as_physeq <- readRDS("results/final/AS/as_physeq.rds")
   as_physeq_genus <- aggregate_taxa(as_physeq, level = "Genus")
   
   # Read MP taxa abundance table
@@ -153,6 +155,6 @@ if (omics == 2) {
 }
 
 # Set up graphics device for PNG output
-svg("results/final/combi_plot.svg")
+svg("results/final/integrated/combi_plot.svg")
 plot(microMetaboIntConstr, samDf = metadata2, samCol = metadata2[[opt$group]])
 dev.off()

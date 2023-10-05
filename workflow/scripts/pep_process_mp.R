@@ -40,10 +40,10 @@ colnames(merged_df) <- append("peptide",temp_samplenames)
 merged_df[is.na(merged_df)] <- 0
 
 # export total peptide list for unipept search
-write(as.vector(merged_df$peptide), "results/final/diff_abun/MP/unipept_list.txt")
+write(as.vector(merged_df$peptide), "results/final/MP/unipept_list.txt")
 
 # save final dataframe for differential abundance analysis
-write.table(merged_df, "results/final/diff_abun/MP/pep_abundance_table.txt", quote = FALSE, 
+write.table(merged_df, "results/final/MP/pep_abundance_table.txt", quote = FALSE, 
             col.names=TRUE,row.names = FALSE, sep="\t")
 
 

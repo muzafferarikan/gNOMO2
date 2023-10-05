@@ -24,13 +24,13 @@ opt <- parse_args(OptionParser(option_list=option_list))
 # Get metadata, abundance and taxonomy tables
 metadata <- import_qiime_sample_data("resources/metadata.txt")
 
-abundance <- read_delim("results/final/diff_abun/MP/pep_abundance_table.txt", 
+abundance <- read_delim("results/final/MP/pep_abundance_table.txt", 
                         delim = "\t", 
                         escape_double = FALSE, 
                         trim_ws = TRUE
                         )
 
-taxonomy <- read_csv("results/final/diff_abun/MP/unipept_results.csv",
+taxonomy <- read_csv("results/final/MP/unipept_results.csv",
                      col_names = FALSE, 
                      trim_ws = TRUE
                      )
@@ -64,7 +64,7 @@ ec_abundance2 <- sum_duplicates(ec_abundance) %>%
   column_to_rownames(var = "EC")
 
 # save final dataframe for pathway level integrated analysis
-write.table(ec_abundance2, "results/final/diff_abun/MP/ec_abundance.txt", quote = FALSE, 
+write.table(ec_abundance2, "results/final/MP/ec_abundance.txt", quote = FALSE, 
             col.names=TRUE,row.names = TRUE, sep="\t")
 
 # prepare taxonomy tables for phyloseq merge
@@ -127,7 +127,7 @@ TAX = tax_table(as.matrix(tax.clean))
 pep_physeq_3 <- phyloseq(otu_table(pep_physeq_2), TAX, sample_data(pep_physeq_2))
 
 # write peptide physeq for further analyses 
-saveRDS(pep_physeq_3, file = "results/final/diff_abun/MP/peptide_phyloseq.Rdata")
+saveRDS(pep_physeq_3, file = "results/final/MP/peptide_phyloseq.Rdata")
 
 pep_physeq_4 <- tax_glom(pep_physeq_3, taxrank=opt$taxa_rank, NArm=TRUE)
 taxa_names(pep_physeq_4) <- tax_table(pep_physeq_4)[,opt$taxa_rank]

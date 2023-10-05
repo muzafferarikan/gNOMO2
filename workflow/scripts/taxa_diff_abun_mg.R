@@ -69,7 +69,7 @@ merged_df2$taxa <- paste(merged_df2$taxa, "_MG", sep = "")
 
 # save abundance table
 write.table(merged_df2,
-            file = "results/final/diff_abun/MG/mg_taxa_abundance.txt",
+            file = "results/final/MG/mg_taxa_abundance.txt",
             sep = "\t",
             quote = FALSE,
             row.names = FALSE

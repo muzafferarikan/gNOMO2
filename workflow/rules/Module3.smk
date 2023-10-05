@@ -10,14 +10,14 @@ rule all:
 		interproscan_db = "results/intermediate_files/prot_db/database_MP.fasta",
 		interproscan_setup = "results/intermediate_files/interproscan/interproscan_setup.txt",
 		msgf_db = "results/final/prot_db/db_ready.fasta",
-		pep_abundance_table = "results/final/diff_abun/MP/pep_abundance_table.txt",
-		peptide_list = "results/final/diff_abun/MP/unipept_list.txt",
-		unipept_results = "results/final/diff_abun/MP/unipept_results.csv",
+		pep_abundance_table = "results/final/MP/pep_abundance_table.txt",
+		peptide_list = "results/final/MP/unipept_list.txt",
+		unipept_results = "results/final/MP/unipept_results.csv",
 		diff_abun_results_mg = "results/final/diff_abun/taxa-maaslin2-MG/maaslin2.log",
 		diff_abun_results_mp = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
 		diff_abun_tigrfam_results = "results/final/diff_abun/tigrfam-maaslin2-MG/maaslin2.log",
-		pathview_results = "results/final/pathview/log.txt",
-		combi_results = "results/final/combi_plot.png"
+		pathview_results = "results/final/integrated/pathview/log.txt",
+		combi_results = "results/final/integrated/combi_plot.png"
 
 rule trimPE:
 	input:
@@ -139,9 +139,8 @@ rule diff_abund_MG:
 		input=expand("results/intermediate_files/kaiju/kaiju_output/MG/MG_{sample}_kaiju_summary.tsv", omics=config["omics"], sample=config["MG_samples"])
 	output:
 		log = "results/final/diff_abun/taxa-maaslin2-MG/maaslin2.log",
-		abundance_mg = "results/final/diff_abun/MG/mg_taxa_abundance.txt"
+		abundance_mg = "results/final/MG/mg_taxa_abundance.txt"
 	params:
-		outdir = "results/final/diff_abun/taxa-maaslin2-MG/",
 		param1 = config["parameters"]["group"]
 	conda:
 		srcdir("../envs/R.yaml")
@@ -353,7 +352,7 @@ rule pathway_integration:
 	input:
 		input=expand("results/intermediate_files/eggnog/{omics}_{sample}_eggnog.emapper.annotations", omics=config["omics"], sample=config["MG_samples"])
 	output:
-		output = "results/final/pathview/log.txt"
+		output = "results/final/integrated/pathview/log.txt"
 	params:
 		param1 = config["parameters"]["group"]
 	conda:
@@ -411,8 +410,8 @@ rule unipept_prep:
 	input:
 		input = expand("results/intermediate_files/msgf_plus/peptides_{spectra}.txt", spectra=config["MP_samples"])
 	output:
-		output1 = "results/final/diff_abun/MP/unipept_list.txt",
-		output2 = "results/final/diff_abun/MP/pep_abundance_table.txt"
+		output1 = "results/final/MP/unipept_list.txt",
+		output2 = "results/final/MP/pep_abundance_table.txt"
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
@@ -420,9 +419,9 @@ rule unipept_prep:
 
 rule run_unipept:
 	input:
-		input="results/final/diff_abun/MP/unipept_list.txt"
+		input="results/final/MP/unipept_list.txt"
 	output:
-		output="results/final/diff_abun/MP/unipept_results.csv"
+		output="results/final/MP/unipept_results.csv"
 	conda:
 		srcdir("../envs/pyteomics.yaml")
 	shell:
@@ -430,9 +429,9 @@ rule run_unipept:
 
 rule diff_abund_MP:
 	input:
-		abundance = "results/final/diff_abun/MP/pep_abundance_table.txt",
+		abundance = "results/final/MP/pep_abundance_table.txt",
 		metadata = "resources/metadata.txt",
-		taxonomy = "results/final/diff_abun/MP/unipept_results.csv"
+		taxonomy = "results/final/MP/unipept_results.csv"
 	output:
 		"results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log"
 	params:
@@ -446,11 +445,11 @@ rule diff_abund_MP:
 
 rule combi:
 	input:
-		abundance_mp = "results/final/diff_abun/MP/pep_abundance_table.txt",
+		abundance_mp = "results/final/MP/pep_abundance_table.txt",
 		metadata = "resources/metadata.txt",
-		abundance_mg = "results/final/diff_abun/MG/mg_taxa_abundance.txt"
+		abundance_mg = "results/final/MG/mg_taxa_abundance.txt"
 	output:
-		plot = "results/final/combi_plot.png"
+		plot = "results/final/integrated/combi_plot.png"
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:

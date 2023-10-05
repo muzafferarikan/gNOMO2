@@ -13,8 +13,8 @@ rule all:
 		diff_abun_results_mt = "results/final/diff_abun/taxa-maaslin2-MT/maaslin2.log",
 		diff_abun_tigrfam_results_mg = "results/final/diff_abun/tigrfam-maaslin2-MG/maaslin2.log",
 		diff_abun_tigrfam_results_mt = "results/final/diff_abun/tigrfam-maaslin2-MT/maaslin2.log",
-		pathview_results = "results/final/pathview/log.txt",
-		combi_results = "results/final/combi_plot.png"
+		pathview_results = "results/final/integrated/pathview/log.txt",
+		combi_results = "results/final/integrated/combi_plot.png"
 
 rule trimPE:
 	input:
@@ -132,9 +132,8 @@ rule diff_abund_MG:
 		input=expand("results/intermediate_files/kaiju/kaiju_output/MG/MG_{sample}_kaiju_summary.tsv", omics=config["omics"], sample=config["MG_samples"])
 	output:
 		log = "results/final/diff_abun/taxa-maaslin2-MG/maaslin2.log",
-		abundance_mg = "results/final/diff_abun/MG/mg_taxa_abundance.txt"
+		abundance_mg = "results/final/MG/mg_taxa_abundance.txt"
 	params:
-		outdir = "results/final/diff_abun/taxa-maaslin2-MG/",
 		param1 = config["parameters"]["group"]
 	conda:
 		srcdir("../envs/R.yaml")
@@ -146,9 +145,8 @@ rule diff_abund_MT:
 		input=expand("results/intermediate_files/kaiju/kaiju_output/MT/MT_{sample}_kaiju_summary.tsv", omics=config["omics"], sample=config["MG_samples"])
 	output:
 		log = "results/final/diff_abun/taxa-maaslin2-MT/maaslin2.log",
-		abundance_mt = "results/final/diff_abun/MT/mt_taxa_abundance.txt"
+		abundance_mt = "results/final/MT/mt_taxa_abundance.txt"
 	params:
-		outdir = "results/final/diff_abun/taxa-maaslin2-MT/",
 		param1 = config["parameters"]["group"]
 	conda:
 		srcdir("../envs/R.yaml")
@@ -380,9 +378,9 @@ rule eggnog:
 
 rule pathway_integration:
 	input:
-		input=expand("results/eggnog/{omics}_{sample}_eggnog.emapper.annotations", omics=config["omics"], sample=config["MG_samples"])
+		input=expand("results/intermediate_files/eggnog/{omics}_{sample}_eggnog.emapper.annotations", omics=config["omics"], sample=config["MG_samples"])
 	output:
-		output = "results/final/pathview/log.txt"
+		output = "results/final/integrated/pathview/log.txt"
 	params:
 		param1 = config["parameters"]["group"]
 	conda:
@@ -393,11 +391,13 @@ rule pathway_integration:
 rule combi:
 	input:
 		metadata = "resources/metadata.txt",
-		abundance_mg = "results/final/diff_abun/MG/mg_taxa_abundance.txt",
-		abundance_mt = "results/final/diff_abun/MT/mt_taxa_abundance.txt",
+		abundance_mg = "results/final/MG/mg_taxa_abundance.txt",
+		abundance_mt = "results/final/MT/mt_taxa_abundance.txt",
 	output:
-		plot = "results/final/combi_plot.png"
+		plot = "results/final/integrated/combi_plot.png"
+	params:
+		param1 = config["parameters"]["group"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/visual_integration.R"
+		"Rscript workflow/scripts/visual_integration.R --group {params.param1}"
