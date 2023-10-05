@@ -11,6 +11,7 @@ rule all:
 		silvadb = "results/intermediate_files/silva_db/silva_nr99_v138.1_train_set.fa.gz", 
 		top_taxa_and_host_names = "results/intermediate_files/top_taxa_host.txt",
 		as_based_database = "results/final/prot_db/as_based_database.fa",
+		diff_abun_as = "results/final/diff_abun/taxa-maaslin2-AS/maaslin2.log",
 		interproscan_db = "results/final/prot_db/database_MP.fasta",
 		interproscan_setup = "results/intermediate_files/interproscan/interproscan_setup.txt",
 		diff_abun_results_mg = "results/final/diff_abun/taxa-maaslin2-MG/maaslin2.log",
@@ -95,9 +96,12 @@ rule download_silvadb:
 rule dada2:
 	input:
 		silva_db = "results/intermediate_files/silva_db/silva_nr99_v138.1_train_set.fa.gz",
-		samples = expand("results/intermediate_files/merged/AS/AS_{sample}.extendedFrags.fastq", sample=config["AS_samples"])
+		samples = expand("results/intermediate_files/merged/AS/{sample}.extendedFrags.fastq", sample=config["AS_samples"])
 	output:
-		d1 = temp("results/intermediate_files/top_taxa.txt")
+		d1 = "results/intermediate_files/top_taxa.txt",
+		d2 = "results/final/as_abundance_plot.svg",
+		d3 = "results/final/as_physeq.rds",
+		d4 = "results/final/diff_abun/taxa-maaslin2-AS/maaslin2.log"
 	params:
 		param1 = config["parameters"]["group"],
 		param2 = config["parameters"]["taxa_rank"],

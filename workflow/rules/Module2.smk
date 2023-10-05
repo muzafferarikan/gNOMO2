@@ -14,10 +14,11 @@ rule all:
 		top_taxa_and_host_names = "results/intermediate_files/top_taxa_host.txt",
 		as_abundance_plot = "results/final/as_abundance_plot.svg",
 		as_based_database = "results/final/prot_db/as_based_database.fa",
+		diff_abun_as = "results/final/diff_abun/taxa-maaslin2-AS/maaslin2.log",
 		pep_abundance_table = "results/final/diff_abun/MP/pep_abundance_table.txt",
 		peptide_list = "results/final/diff_abun/MP/unipept_list.txt",
 		unipept_results = "results/final/diff_abun/MP/unipept_results.csv",
-		maaslin2_results = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
+		diff_abun_mp = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
 		combi_results = "results/final/combi_plot.png"
 
 rule trimPE:
@@ -94,7 +95,8 @@ rule dada2:
 	output:
 		d1 = "results/intermediate_files/top_taxa.txt",
 		d2 = "results/final/as_abundance_plot.svg",
-		d3 = "results/final/as_physeq.rds"
+		d3 = "results/final/as_physeq.rds",
+		d4 = "results/final/diff_abun/taxa-maaslin2-AS/maaslin2.log"
 	params:
 		param1 = config["parameters"]["group"],
 		param2 = config["parameters"]["taxa_rank"],

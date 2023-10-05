@@ -12,6 +12,7 @@ library(phyloseq)
 library(Biostrings)
 library(ggplot2)
 library(microbiome)
+library(Maaslin2)
 library(tidyverse)
 library(optparse)
 
@@ -104,6 +105,16 @@ abun_plot <- plot_bar(ps_rel_taxa_topn, x = "SampleID", fill = opt$taxa_rank) + 
 # Prepare the list of most abundant taxa
 topn_taxa_2 <- gsub("Other", "", gsub("Unknown", "", topn_taxa))
 topn_taxa_3 <- as.character(topn_taxa_2[topn_taxa_2 != ""])
+
+# perform differential abundance analysis
+otu <- as(otu_table(ps_clean),"matrix") %>% as.data.frame()
+
+maaslin_results = Maaslin2::Maaslin2(input_data = otu,
+                                     input_metadata = metadata,
+                                     output = "results/final/diff_abun/taxa-maaslin2-AS",
+                                     fixed_effects = opt$group,
+                                     standardize = FALSE
+                                     )
 
 # Write output files (abundance barplot, phyloseq object, and most abundant taxa names)
 svg("results/final/as_abundance_plot.svg")
