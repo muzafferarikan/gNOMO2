@@ -100,7 +100,8 @@ ps_rel <- microbiome::transform(ps_clean, "compositional")
 ps_rel_taxa <- aggregate_taxa(ps_rel, level = opt$taxa_rank)
 topn_taxa <- top_taxa(ps_rel_taxa, n = opt$top_taxa)
 ps_rel_taxa_topn <- prune_taxa(topn_taxa, ps_rel_taxa)
-abun_plot <- plot_bar(ps_rel_taxa_topn, x = "SampleID", fill = opt$taxa_rank) + facet_wrap(as.formula(paste("~", opt$group)), scales = "free_x")
+abun_plot <- plot_bar(ps_rel_taxa_topn, x = "SampleID", fill = opt$taxa_rank) +
+                  facet_grid(as.formula(paste("~", opt$group)), scales = "free", space = "free")
 
 # Prepare the list of most abundant taxa
 topn_taxa_2 <- gsub("Other", "", gsub("Unknown", "", topn_taxa))

@@ -21,7 +21,7 @@ elif omics_combination == '2':
 
 elif omics_combination == '3':
     module Module3:
-        snakefile: "rules/Module3_v3.smk"
+        snakefile: "rules/Module3.smk"
         config: config["Module3"]
 
     use rule * from Module3 as Module3_*

@@ -40,7 +40,7 @@ if (omics == 2) {
   as_physeq_genus <- aggregate_taxa(as_physeq, level = "Genus")
   
   # Read MP taxa abundance table
-  ec_abundance <- read.delim("results/final/diff_abun/MP/pep_abundance_table.txt", header=TRUE, sep="\t")
+  ec_abundance <- read.delim("results/final/MP/pep_abundance_table.txt", header=TRUE, sep="\t")
   ec_abundance <- column_to_rownames(ec_abundance, var = "peptide")
   ec_abundance2 <- otu_table(ec_abundance, taxa_are_rows = TRUE)
 
@@ -61,13 +61,13 @@ if (omics == 2) {
   
 } else if (omics == 3) {
   # Read MG taxa abundance table
-  mg_taxa_abundance <- read.delim("results/final/diff_abun/MG/mg_taxa_abundance.txt", header=TRUE, sep="\t")
+  mg_taxa_abundance <- read.delim("results/final/MG/mg_taxa_abundance.txt", header=TRUE, sep="\t")
   mg_taxa_abundance <- column_to_rownames(mg_taxa_abundance, var = "taxa")
   mg_taxa_abundance[is.na(mg_taxa_abundance)] <- 0
   mg_taxa_abundance2 <- otu_table(mg_taxa_abundance, taxa_are_rows = TRUE)
   
   # Read MP taxa abundance table
-  ec_abundance <- read.delim("results/final/diff_abun/MP/pep_abundance_table.txt", header=TRUE, sep="\t")
+  ec_abundance <- read.delim("results/final/MP/pep_abundance_table.txt", header=TRUE, sep="\t")
   ec_abundance <- column_to_rownames(ec_abundance, var = "peptide")
   ec_abundance2 <- otu_table(ec_abundance, taxa_are_rows = TRUE)
   
@@ -89,14 +89,14 @@ if (omics == 2) {
   
 } else if (omics == 4) {
   # Read MG taxa abundance table
-  mg_taxa_abundance <- read.delim("results/final/diff_abun/MG/mg_taxa_abundance.txt", header=TRUE, sep="\t")
+  mg_taxa_abundance <- read.delim("results/final/MG/mg_taxa_abundance.txt", header=TRUE, sep="\t")
   mg_taxa_abundance
   mg_taxa_abundance <- column_to_rownames(mg_taxa_abundance, var = "taxa")
   mg_taxa_abundance[is.na(mg_taxa_abundance)] <- 0
   mg_taxa_abundance2 <- otu_table(mg_taxa_abundance, taxa_are_rows = TRUE)
   
   # Read MT taxa abundance table
-  mt_taxa_abundance <- read.delim("results/final/diff_abun/MT/mt_taxa_abundance.txt", header=TRUE, sep="\t")
+  mt_taxa_abundance <- read.delim("results/final/MT/mt_taxa_abundance.txt", header=TRUE, sep="\t")
   ec_abundance
   mt_taxa_abundance <- column_to_rownames(mt_taxa_abundance, var = "taxa")
   mt_taxa_abundance[is.na(mt_taxa_abundance)] <- 0
@@ -119,19 +119,19 @@ if (omics == 2) {
   
 } else if (omics >= 5) {
   # Read MG taxa abundance table
-  mg_taxa_abundance <- read.delim("results/final/diff_abun/MG/mg_taxa_abundance.txt", header=TRUE, sep="\t")
+  mg_taxa_abundance <- read.delim("results/final/MG/mg_taxa_abundance.txt", header=TRUE, sep="\t")
   mg_taxa_abundance <- column_to_rownames(mg_taxa_abundance, var = "taxa")
   mg_taxa_abundance[is.na(mg_taxa_abundance)] <- 0
   mg_taxa_abundance2 <- otu_table(mg_taxa_abundance, taxa_are_rows = TRUE)
   
   # Read MT taxa abundance table
-  mt_taxa_abundance <- read.delim("results/final/diff_abun/MT/mt_taxa_abundance.txt", header=TRUE, sep="\t")
+  mt_taxa_abundance <- read.delim("results/final/MT/mt_taxa_abundance.txt", header=TRUE, sep="\t")
   mt_taxa_abundance <- column_to_rownames(mt_taxa_abundance, var = "taxa")
   mt_taxa_abundance[is.na(mt_taxa_abundance)] <- 0
   mt_taxa_abundance2 <- otu_table(mt_taxa_abundance, taxa_are_rows = TRUE)
   
   # Read MP taxa abundance table
-  ec_abundance <- read.delim("results/final/diff_abun/MP/pep_abundance_table.txt", header=TRUE, sep="\t")
+  ec_abundance <- read.delim("results/final/MP/pep_abundance_table.txt", header=TRUE, sep="\t")
   ec_abundance <- column_to_rownames(ec_abundance, var = "peptide")
   ec_abundance2 <- otu_table(ec_abundance, taxa_are_rows = TRUE)
   
