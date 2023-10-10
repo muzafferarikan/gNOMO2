@@ -181,7 +181,7 @@ rule getAnnoFasta:
 	conda:
 		srcdir("../envs/perl.yaml")
 	shell:
-		"perl ./workflow/scripts/MA_getAnnoFasta.pl {input}"
+		"perl ./workflow/scripts/get_anno_fasta.pl {input}"
 
 rule seqkit_host:
 	input:

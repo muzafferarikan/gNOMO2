@@ -12,3 +12,4 @@ resources/
 gnomo_slurm_template.sh
 log/
 hs_err*
+temp/

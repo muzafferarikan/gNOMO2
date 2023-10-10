@@ -34,7 +34,7 @@ tigrfam_data <- lapply(tigrfam_files, function(file_path) {
 df_list <- setNames(tigrfam_data, tigrfam_files)
 
 # Read the Snakemake config file
-config <- yaml::yaml.load_file("config/config_tanca.yaml")
+config <- yaml::yaml.load_file("config/config.yaml")
 
 # Get the analysis options from the config file
 omics <- config$omics_combination

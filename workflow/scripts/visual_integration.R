@@ -26,7 +26,7 @@ dir.create("results/final/integrated")
 metadata <- read.table("resources/metadata.txt", header=TRUE, sep = "\t", fileEncoding = "UTF-8")
 metadata2 <- column_to_rownames(metadata, var = "SampleID")
 #metadata2$DiseaseStage <- NULL
-metadata2$Group <- as.factor(metadata2$Group)
+metadata2$Sex <- as.factor(metadata2$Sex)
 #metadata2$Stage <- NULL
 metadata3 <- sample_data(metadata2)
 
@@ -83,7 +83,7 @@ if (omics == 2) {
     logTransformGaussian = FALSE,
     covariates = metadata2,
     verbose = TRUE,
-    prevCutOff = 0.3,
+    prevCutOff = 0.1,
     allowMissingness = TRUE
   )
   
@@ -156,5 +156,5 @@ if (omics == 2) {
 
 # Set up graphics device for PNG output
 svg("results/final/integrated/combi_plot.svg")
-plot(microMetaboIntConstr, samDf = metadata2, samCol = metadata2[[opt$group]])
+plot(microMetaboIntConstr)
 dev.off()
