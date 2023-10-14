@@ -19,7 +19,7 @@ rule all:
 		peptide_list = "results/final/MP/unipept_list.txt",
 		unipept_results = "results/final/MP/unipept_results.csv",
 		diff_abun_mp = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
-		combi_results = "results/final/integrated/combi_plot.png"
+		combi_results = "results/final/integrated/combi_plot.svg"
 
 rule trimPE:
 	input:
@@ -245,11 +245,12 @@ rule diff_abund_MP:
 	params:
 		outdir = "results/diff_abun/taxa-maaslin2-MP/",
 		param1 = config["parameters"]["group"],
-		param2 = config["parameters"]["taxa_rank"]
+		param2 = config["parameters"]["taxa_rank"],
+		param3 = config["parameters"]["top_taxa"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/taxa_diff_abun_mp.R --group {params.param1} --taxa_rank {params.param2}"
+		"Rscript workflow/scripts/taxa_diff_abun_mp.R --group {params.param1} --taxa_rank {params.param2} --top_taxa {params.param3}"
 
 rule combi:
 	input:
@@ -257,7 +258,7 @@ rule combi:
 		metadata = "resources/metadata.txt",
 		abundance_as = "results/final/AS/as_physeq.rds"
 	output:
-		plot = "results/final/integrated/combi_plot.png"
+		plot = "results/final/integrated/combi_plot.svg"
 	params:
 		param1 = config["parameters"]["group"]
 	conda:

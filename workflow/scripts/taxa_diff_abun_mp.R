@@ -9,6 +9,7 @@
 library(tidyverse)
 library(phyloseq)
 library(Maaslin2)
+library(microbiome)
 library(optparse)
 
 # define arguments
@@ -16,7 +17,8 @@ commandArgs(trailing=TRUE)
 
 option_list <- list(
   make_option(c("-g", "--group"), type="character", default="Group", help="enter group name"),
-  make_option(c("-t", "--taxa_rank"), type = "character", default="Genus", help = "enter taxa rank")
+  make_option(c("-t", "--taxa_rank"), type = "character", default="Genus", help = "enter taxa rank"),
+  make_option(c("-n", "--top_taxa"), type = "character", default = "5", help = "Enter most abundant taxa number")
 )
 
 opt <- parse_args(OptionParser(option_list=option_list))
@@ -67,11 +69,11 @@ ec_abundance2 <- sum_duplicates(ec_abundance) %>%
 write.table(ec_abundance2, "results/final/MP/ec_abundance.txt", quote = FALSE, 
             col.names=TRUE,row.names = TRUE, sep="\t")
 
-# prepare taxonomy tables for phyloseq merge
-taxonomy_noec <- taxonomy_matched[-c(9)]
+# prepare taxonomy table for phyloseq merge
+taxonomy_noec <- taxonomy_matched[-c(9)] 
 
 #subset the table by user defined taxonomic rank
-taxonomy_noec_subsetted <- taxonomy_noec[c("peptide","Kingdom")]
+#taxonomy_noec_subsetted <- taxonomy_noec[c("peptide", opt$taxa_rank)]
 
 # prepare abundance table for phyloseq
 abundance_matched2 <- column_to_rownames(abundance_matched, var = "peptide")
@@ -89,50 +91,27 @@ taxonomy_matched_physeq <- column_to_rownames(taxonomy_noec, var = "peptide") %>
 
 # create a phyloseq object
 pep_physeq <- merge_phyloseq(abundance_matched_physeq, metadata, taxonomy_matched_physeq)     
+pep_physeq_2 <- pep_physeq %>% subset_taxa(Phylum != "")
 
-# remove peptides that don't have a taxonomic assignment at kingdom level
-pep_physeq_2 <- pep_physeq %>% subset_taxa(Kingdom != "")
+# Generate barplot based on relative abundances
+ps_rel <- microbiome::transform(pep_physeq_2, "compositional")
+ps_rel_taxa <- aggregate_taxa(ps_rel, level = opt$taxa_rank)
+topn_taxa <- top_taxa(ps_rel_taxa, n = opt$top_taxa)
+ps_rel_taxa_topn <- prune_taxa(topn_taxa, ps_rel_taxa)
+abun_plot <- plot_bar(ps_rel_taxa_topn, x = "SampleID", fill = opt$taxa_rank) +
+                  facet_grid(as.formula(paste("~", opt$group)), scales = "free", space = "free")
 
-# modify taxonomy table - change "NA" assignments 
-tax.clean <- as(tax_table(pep_physeq_2),"matrix") %>% as.data.frame()
-tax.clean[is.na(tax.clean)] <- ""
-
-
-for (i in 1:nrow(tax.clean)){
-  if (tax.clean[i,7] != ""){
-    tax.clean$Species[i] <- paste(tax.clean$Genus[i], tax.clean$Species[i], sep = "_")
-  } else if (tax.clean[i,2] == ""){
-    kingdom <- paste("Unclassified", tax.clean[i,1], sep = "_")
-    tax.clean[i, 2:7] <- kingdom
-  } else if (tax.clean[i,3] == ""){
-    phylum <- paste("Unclassified", tax.clean[i,2], sep = "_")
-    tax.clean[i, 3:7] <- phylum
-  } else if (tax.clean[i,4] == ""){
-    class <- paste("Unclassified", tax.clean[i,3], sep = "_")
-    tax.clean[i, 4:7] <- class
-  } else if (tax.clean[i,5] == ""){
-    order <- paste("Unclassified", tax.clean[i,4], sep = "_")
-    tax.clean[i, 5:7] <- order
-  } else if (tax.clean[i,6] == ""){
-    family <- paste("Unclassified", tax.clean[i,5], sep = "_")
-    tax.clean[i, 6:7] <- family
-  } else if (tax.clean[i,7] == ""){
-    tax.clean$Species[i] <- paste("Unclassified ",tax.clean$Genus[i], sep = " ")
-  }
-}
-
-TAX = tax_table(as.matrix(tax.clean))
-
-# create a new phyloseq object with modified taxonomy table
-pep_physeq_3 <- phyloseq(otu_table(pep_physeq_2), TAX, sample_data(pep_physeq_2))
+# Write output files (abundance barplot, phyloseq object, and most abundant taxa names)
+svg("results/final/MP/mp_abundance_plot.svg")
+abun_plot
+dev.off()
 
 # write peptide physeq for further analyses 
-saveRDS(pep_physeq_3, file = "results/final/MP/peptide_phyloseq.Rdata")
+saveRDS(pep_physeq_2, file = "results/final/MP/peptide_phyloseq.Rdata")
 
-pep_physeq_4 <- tax_glom(pep_physeq_3, taxrank=opt$taxa_rank, NArm=TRUE)
-taxa_names(pep_physeq_4) <- tax_table(pep_physeq_4)[,opt$taxa_rank]
-
-otu <- as(otu_table(pep_physeq_4),"matrix") %>% as.data.frame()
+# prepare abundance table for maaslin2 analysis
+pep_physeq_3 <- aggregate_taxa(pep_physeq_2, level=opt$taxa_rank)
+otu <- as(otu_table(pep_physeq_3),"matrix") %>% as.data.frame()
 
 # perform differential abundance analysis
 maaslin_results = Maaslin2::Maaslin2(input_data = otu,

@@ -20,7 +20,7 @@ rule all:
 		diff_abun_tigrfam_results_mg = "results/final/diff_abun/tigrfam-maaslin2-MG/maaslin2.log",
 		diff_abun_tigrfam_results_mt = "results/final/diff_abun/tigrfam-maaslin2-MT/maaslin2.log",
 		pathview_results = "results/final/integrated/pathview/log.txt",
-		combi_results = "results/final/integrated/combi_plot.png",
+		combi_results = "results/final/integrated/combi_plot.svg",
 		msgf_db = "results/final/prot_db/db_ready.fasta",
 		pep_abundance_table = "results/final/MP/pep_abundance_table.txt",
 		peptide_list = "results/final/MP/unipept_list.txt",
@@ -612,7 +612,7 @@ rule combi:
 		abundance_mt = "results/final/MT/mt_taxa_abundance.txt",
 		abundance_mp = "results/final/MP/pep_abundance_table.txt"
 	output:
-		plot = "results/final/integrated/combi/plot.png"
+		plot = "results/final/integrated/combi/plot.svg"
 	params:
 		param1 = config["parameters"]["group"]
 	conda:

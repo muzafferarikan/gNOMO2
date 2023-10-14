@@ -22,7 +22,7 @@ commandArgs(trailing = TRUE)
 option_list <- list(
   make_option(c("-g", "--group"), type = "character", default = "Group", help = "Enter group name"),
   make_option(c("-t", "--taxa_rank"), type = "character", default = "Genus", help = "Enter taxa rank"),
-  make_option(c("-n", "--top_taxa"), type = "character", default = "Genus", help = "Enter most abundant taxa number")
+  make_option(c("-n", "--top_taxa"), type = "character", default = "5", help = "Enter most abundant taxa number")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))

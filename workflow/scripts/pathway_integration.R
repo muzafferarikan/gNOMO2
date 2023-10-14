@@ -94,7 +94,7 @@ process_seq <- function(prefix) {
     standardize = FALSE
   )
   
-  diff_abun <- maaslin_results$results %>% data.frame() %>% filter(qval < 0.7)
+  diff_abun <- maaslin_results$results %>% data.frame() %>% filter(qval < 1)
   diff_abun_kegg <- diff_abun$feature
   kegg_df2 <- kegg_df[diff_abun_kegg, ]
   result <- data.frame(ID = rownames(kegg_df2))
@@ -151,7 +151,7 @@ process_ec_abundance <- function(ec_abundance_file, metadata) {
   )
   
   ## Filtering differentially abundant features
-  diff_abun_mp <- maaslin_results_mp$results %>% data.frame() %>% filter(qval < 0.7)
+  diff_abun_mp <- maaslin_results_mp$results %>% data.frame() %>% filter(qval < 1)
   diff_abun_mp_kegg <- diff_abun_mp$feature
   ec_matched2 <- ec_matched[diff_abun_mp_kegg, ]
   result_mp <- data.frame(ID = rownames(ec_matched2))

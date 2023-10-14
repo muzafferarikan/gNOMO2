@@ -10,6 +10,7 @@ config/
 workflow/envs/
 resources/
 gnomo_slurm_template.sh
+gnomo_slurm_download.sh
 log/
 hs_err*
 temp/

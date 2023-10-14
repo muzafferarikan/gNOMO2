@@ -9,13 +9,16 @@
 library(tidyverse)
 library(phyloseq)
 library(Maaslin2)
+library(microbiome)
 library(optparse)
 
 commandArgs(trailing=TRUE)
 
-option_list <- list( 
-  make_option(c("-g", "--group"), type="character", default="Group", 
-              help="enter group name"))
+option_list <- list(
+  make_option(c("-g", "--group"), type="character", default="Group", help="enter group name"),
+  make_option(c("-t", "--taxa_rank"), type = "character", default="Genus", help = "enter taxa rank"),
+  make_option(c("-n", "--top_taxa"), type = "character", default = "5", help = "Enter most abundant taxa number")
+)
 
 opt <- parse_args(OptionParser(option_list=option_list))
 
@@ -53,6 +56,7 @@ names(merged_df) <- c(temp_samplenames)
 # remove "unclassified" and viral sequences
 merged_df <- merged_df[!(rownames(merged_df) == "unclassified"), ]
 merged_df <- merged_df[!(rownames(merged_df) == "Viruses"), ]
+rownames(merged_df)[rownames(merged_df) == "cannot be assigned to a (non-viral) genus"] <- "Unassigned_genus"
 
 #perform maaslin analysis
 maaslin_results = Maaslin2::Maaslin2(input_data = merged_df,
@@ -61,6 +65,31 @@ maaslin_results = Maaslin2::Maaslin2(input_data = merged_df,
                                      fixed_effects = opt$group,
                                      standardize = FALSE
                                      )
+
+# prepare phyloseq components
+merged_df[is.na(merged_df)] <- "0"
+merged_df[] <- lapply(merged_df, as.numeric)
+abundance_physeq <- otu_table(merged_df, taxa_are_rows = TRUE)
+
+# prepare a taxonomy table for phyloseq merge
+taxonomy <- data.frame(taxa = rownames(merged_df))
+rownames(taxonomy) <- taxonomy$taxa
+taxonomy_physeq <- taxonomy %>% as.matrix() %>% tax_table()
+
+# create a phyloseq object
+pep_physeq <- merge_phyloseq(abundance_physeq, metadata, taxonomy_physeq)     
+
+# Generate barplot based on relative abundances
+ps_rel <- microbiome::transform(pep_physeq, "compositional")
+topn_taxa <- top_taxa(ps_rel, n = opt$top_taxa)
+ps_rel_topn <- prune_taxa(topn_taxa, ps_rel)
+abun_plot <- plot_bar(ps_rel_topn, x = "SampleID", fill="taxa") +
+                  facet_grid(as.formula(paste("~", opt$group)), scales = "free", space = "free")
+
+# Write output files (abundance barplot, phyloseq object, and most abundant taxa names)
+svg("results/final/MG/mg_abundance_plot.svg")
+abun_plot
+dev.off()
 
 # prepare abundance table for dowstream analysis
 merged_df2 <- rownames_to_column(merged_df, var="taxa")

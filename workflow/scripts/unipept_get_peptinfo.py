@@ -71,9 +71,9 @@ def getInfoFromUnipept(request_list, result_file):
         for response in unipept_list:
             for element in response:
                 try:
-                    kingdom_name = element["kingdom_name"].strip()
+                    superkingdom_name = element["superkingdom_name"].strip()
                 except KeyError:
-                    kingdom_name = ""
+                    superkingdom_name = ""
                 try:
                     phylum_name = element["phylum_name"].strip()
                 except KeyError:
@@ -106,7 +106,7 @@ def getInfoFromUnipept(request_list, result_file):
                 except IndexError:
                     ec = ""
 
-                print("{},{},{},{},{},{},{},{},{}".format(element["peptide"].strip(), kingdom_name, phylum_name, class_name, order_name, family_name, genus_name, species_name, ec), file=f_out)
+                print("{},{},{},{},{},{},{},{},{}".format(element["peptide"].strip(), superkingdom_name, phylum_name, class_name, order_name, family_name, genus_name, species_name, ec), file=f_out)
 
 
 if __name__ == "__main__":

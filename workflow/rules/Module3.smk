@@ -14,10 +14,12 @@ rule all:
 		peptide_list = "results/final/MP/unipept_list.txt",
 		unipept_results = "results/final/MP/unipept_results.csv",
 		diff_abun_results_mg = "results/final/diff_abun/taxa-maaslin2-MG/maaslin2.log",
+		mg_abundance_plot = "results/final/MG/mg_abundance_plot.svg",
 		diff_abun_results_mp = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
+		mp_abundance_plot = "results/final/MP/mp_abundance_plot.svg",
 		diff_abun_tigrfam_results = "results/final/diff_abun/tigrfam-maaslin2-MG/maaslin2.log",
 		pathview_results = "results/final/integrated/pathview/log.txt",
-		combi_results = "results/final/integrated/combi_plot.png"
+		combi_results = "results/final/integrated/combi_plot.svg"
 
 rule trimPE:
 	input:
@@ -139,13 +141,16 @@ rule diff_abund_MG:
 		input=expand("results/intermediate_files/kaiju/kaiju_output/MG/MG_{sample}_kaiju_summary.tsv", omics=config["omics"], sample=config["MG_samples"])
 	output:
 		log = "results/final/diff_abun/taxa-maaslin2-MG/maaslin2.log",
-		abundance_mg = "results/final/MG/mg_taxa_abundance.txt"
+		abundance_mg = "results/final/MG/mg_taxa_abundance.txt",
+		mg_abundance_plot = "results/final/MG/mg_abundance_plot.svg"
 	params:
-		param1 = config["parameters"]["group"]
+		param1 = config["parameters"]["group"],
+		param2 = config["parameters"]["taxa_rank"],
+		param3 = config["parameters"]["top_taxa"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/taxa_diff_abun_mg.R --group {params.param1}"
+		"Rscript workflow/scripts/taxa_diff_abun_mg.R --group {params.param1} --taxa_rank {params.param2} --top_taxa {params.param3}"
 
 rule metaspades:
 	input:
@@ -433,15 +438,17 @@ rule diff_abund_MP:
 		metadata = "resources/metadata.txt",
 		taxonomy = "results/final/MP/unipept_results.csv"
 	output:
-		"results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log"
+		mp_maaslin2_results = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
+		mp_abundance_plot = "results/final/MP/mp_abundance_plot.svg"
 	params:
 		outdir = "results/final/diff_abun/taxa-maaslin2-MP/",
 		param1 = config["parameters"]["group"],
-		param2 = config["parameters"]["taxa_rank"]
+		param2 = config["parameters"]["taxa_rank"],
+		param3 = config["parameters"]["top_taxa"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/taxa_diff_abun_mp.R --group {params.param1} --taxa_rank {params.param2}"
+		"Rscript workflow/scripts/taxa_diff_abun_mp.R --group {params.param1} --taxa_rank {params.param2} --top_taxa {params.param3}"
 
 rule combi:
 	input:
@@ -449,7 +456,7 @@ rule combi:
 		metadata = "resources/metadata.txt",
 		abundance_mg = "results/final/MG/mg_taxa_abundance.txt"
 	output:
-		plot = "results/final/integrated/combi_plot.png"
+		plot = "results/final/integrated/combi_plot.svg"
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
