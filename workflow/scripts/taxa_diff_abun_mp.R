@@ -91,7 +91,7 @@ taxonomy_matched_physeq <- column_to_rownames(taxonomy_noec, var = "peptide") %>
 
 # create a phyloseq object
 pep_physeq <- merge_phyloseq(abundance_matched_physeq, metadata, taxonomy_matched_physeq)     
-pep_physeq_2 <- pep_physeq %>% subset_taxa(Phylum != "")
+pep_physeq_2 <- pep_physeq %>% subset_taxa(opt$taxa_rank != "")
 
 # Generate barplot based on relative abundances
 ps_rel <- microbiome::transform(pep_physeq_2, "compositional")

@@ -5,6 +5,19 @@ If you use this tool, please cite the preprint:
 Arikan M, Muth T. (2023) gNOMO2: a comprehensive and modular pipeline for integrated 
 multi-omics analysis of microbiomes. bioRxiv. doi: Link
 
+# Table of contents
+- [Installation](#installation)
+- [Setup](#setup)
+    - [Data](#data)
+    - [Metadata](#metadata)
+    - [Config](#config)
+- [Running](#running)
+    - [Running locally](#running-locally)
+    - [Running on a cluster](#running-on-a-cluster)
+- [Outputs](#outputs)
+    - [Final outputs](#final-outputs)
+    - [Intermediate outputs](#intermediate-outputs)
+
 # Installation
 1. If you do not have conda installed: Install [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
 2. Create a Snakemake environment in conda:
@@ -34,7 +47,7 @@ bash workflow/scripts/create_config.sh
 ```
 Now you will find a config.yaml file created inside `config` folder. Check sample names and if you need modify analysis parameters.
 
-## Running
+## Running locally
 After completing the steps described above, gNOMO2 is ready to run:
 1. Activate you snakemake environment in conda:
 ```

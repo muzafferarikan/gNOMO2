@@ -13,7 +13,7 @@ rule all:
 		diff_abun_results_mt = "results/final/diff_abun/taxa-maaslin2-MT/maaslin2.log",
 		diff_abun_tigrfam_results_mg = "results/final/diff_abun/tigrfam-maaslin2-MG/maaslin2.log",
 		diff_abun_tigrfam_results_mt = "results/final/diff_abun/tigrfam-maaslin2-MT/maaslin2.log",
-		pathview_results = "results/final/integrateed/pathview/log.txt",
+		pathview_results = "results/final/integrated/pathview/log.txt",
 		combi_results = "results/final/integrated/combi_plot.svg",
 		msgf_db = "results/final/prot_db/db_ready.fasta",
 		pep_abundance_table = "results/final/MP/pep_abundance_table.txt",
@@ -93,7 +93,7 @@ rule sed:
 
 rule kaiju_db:
 	output:
-		nr = "results/intermediate_files/kaiju/kaiju_db/nr/kaiju_db_nr.fmi",
+		nr = "results/intermediate_files/kaiju/kaiju_db/kaiju_db_nr.fmi",
 		nodes = "results/intermediate_files/kaiju/kaiju_db/nodes.dmp",
 		names = "results/intermediate_files/kaiju/kaiju_db/names.dmp"
 	conda:
@@ -101,21 +101,25 @@ rule kaiju_db:
 	shell:
 		"""
 		cd results/intermediate_files/kaiju/kaiju_db/
-		kaiju-makedb -s nr -t 2
+		wget https://kaiju.binf.ku.dk/database/kaiju_db_nr_2020-05-25.tgz
+		tar xzf kaiju_db_nr_2020-05-25.tgz
 		"""
 
 rule kaiju_classify:
 	input:
-		input="results/intermediate_files/kaiju/kaiju_input/{omics}_{sample}_ns.fastq",
+		sample="results/intermediate_files/kaiju/kaiju_input/{omics}_{sample}_ns.fastq",
 		nodes="results/intermediate_files/kaiju/kaiju_db/nodes.dmp",
-		fmi="results/intermediate_files/kaiju/kaiju_db/nr/kaiju_db_nr.fmi"
+		fmi="results/intermediate_files/kaiju/kaiju_db/kaiju_db_nr.fmi"
 	output:
 		output="results/intermediate_files/kaiju/kaiju_output/{omics}/{omics}_{sample}_ns_kaiju.out"
 	conda:
 		srcdir("../envs/kaiju.yaml")
+	resources:
+		gpu=1
+	threads: 16
 	shell:
 		"""
-		kaiju -t {input.nodes} -f {input.fmi} -i {input.input} -o {output}
+		kaiju -t {input.nodes} -f {input.fmi} -i {input.sample} -o {output} -z {threads}
 		"""
 
 rule kaiju_summarize:
@@ -139,11 +143,13 @@ rule diff_abund_MG:
 		log = "results/final/diff_abun/taxa-maaslin2-MG/maaslin2.log",
 		abundance_mg = "results/final/MG/mg_taxa_abundance.txt"
 	params:
-		param1 = config["parameters"]["group"]
+		param1 = config["parameters"]["group"],
+		param2 = config["parameters"]["taxa_rank"],
+		param3 = config["parameters"]["top_taxa"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/taxa_diff_abun_mg.R --group {params.param1}"
+		"Rscript workflow/scripts/taxa_diff_abun_mg.R -g {params.param1} -t {params.param2} -n {params.param3}"
 
 rule diff_abund_MT:
 	input:
@@ -152,11 +158,13 @@ rule diff_abund_MT:
 		log = "results/final/diff_abun/taxa-maaslin2-MT/maaslin2.log",
 		abundance_mt = "results/final/MT/mt_taxa_abundance.txt"
 	params:
-		param1 = config["parameters"]["group"]
+		param1 = config["parameters"]["group"],
+		param2 = config["parameters"]["taxa_rank"],
+		param3 = config["parameters"]["top_taxa"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/taxa_diff_abun_mt.R --group {params.param1}"
+		"Rscript workflow/scripts/taxa_diff_abun_mt.R -g {params.param1} -t {params.param2} -n {params.param3}"
 
 rule metaspades:
 	input:
@@ -185,23 +193,50 @@ rule rnaspades:
 	threads: 16
 	shell:
 		"rnaspades.py -1 {input.i1} -2 {input.i2} -o {params.outdir}"
-
-rule augustus:
+rule seqkit_contigs_mg:
 	input:
-		input1 = "results/intermediate_files/spades/MG_{sample}/contigs.fasta",
-		input2 = "results/intermediate_files/spades/MT_{sample}/transcripts.fasta"
+		contigs = "results/intermediate_files/spades/MG_{sample}/contigs.fasta"
 	output:
-		output1 = "results/intermediate_files/augustus/MG_{sample}/augustus_output.gff",
-		output2 = "results/intermediate_files/augustus/MT_{sample}/augustus_output.gff"
+		output = "results/intermediate_files/seqkit/MG_{sample}/contigs_filtered.fasta"
+	conda:
+		srcdir("../envs/seqkit.yaml")
+	shell:
+		"seqkit seq -m 1000 {input} > {output.output}"
+
+rule seqkit_contigs_mt:
+	input:
+		contigs = "results/intermediate_files/spades/MT_{sample}/transcripts.fasta"
+	output:
+		output = "results/intermediate_files/seqkit/MT_{sample}/contigs_filtered.fasta"
+	conda:
+		srcdir("../envs/seqkit.yaml")
+	shell:
+		"seqkit seq -m 200 {input} > {output.output}"
+
+rule eukrep:
+	input:
+		input1 = "results/intermediate_files/seqkit/{omics}_{sample}/contigs_filtered.fasta"
+	output:
+		output1 = "results/intermediate_files/eukrep/{omics}_{sample}/prok_contigs.fasta",
+		output2 = "results/intermediate_files/eukrep/{omics}_{sample}/euk_contigs.fasta"
+	conda:
+		srcdir("../envs/eukrep.yaml")
+	shell:
+		"EukRep -i {input.input1} -o {output.output2} --prokarya {output.output1}"
+
+rule augustus_mg:
+	input:
+		input1 = "results/intermediate_files/eukrep/{omics}_{sample}/euk_contigs.fasta"
+	output:
+		output1 = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.gff"
+	resources:
+		gpu=1
 	conda:
 		srcdir("../envs/augustus.yaml")
 	params:
 		params = config["parameters"]["augustus"]
 	shell:
-		"""
-		augustus {input.input1} {params.params} > {output.output1}
-		augustus {input.input2} {params.params} > {output.output2}
-		"""
+		"augustus {input.input1} {params.params} > {output.output1}"
 
 rule getAnnoFasta:
 	input:
@@ -233,17 +268,14 @@ rule mark_host_protein_seqs:
 
 rule prodigal:
 	input:
-		input1 = "results/intermediate_files/spades/MG_{sample}/contigs.fasta",
-		input2 = "results/intermediate_files/spades/MT_{sample}/transcripts.fasta"
+		contigs = "results/intermediate_files/eukrep/{omics}_{sample}/prok_contigs.fasta"
 	output:
-		proteins1 = "results/intermediate_files/prodigal/MG_{sample}/Proteinas.fasta",
-		proteins2 = "results/intermediate_files/prodigal/MT_{sample}/Proteinas.fasta"
+		proteins = "results/intermediate_files/prodigal/{omics}_{sample}/Proteinas.fasta"
 	conda:
 		srcdir("../envs/prodigal.yaml")
 	shell:
 		"""
-		prodigal -i {input.input1} -p meta -a {output.proteins1}
-		prodigal -i {input.input2} -p meta -a {output.proteins2}
+		prodigal -i {input.contigs} -p meta -a {output.proteins}
 		"""
 
 rule seqkit_microbial:
@@ -289,26 +321,6 @@ rule merge_all_samples:
 	shell:
 		"cat {input} > {output}"
 
-rule interproscan_setup:
-	input:
-		database = "results/final/prot_db/database_MP.fasta"
-	output:
-		output = "results/intermediate_files/interproscan/interproscan_setup.txt"
-	shell:
-		"""
-		mkdir -p results/intermediate_files/interproscan 
-		cd results/intermediate_files/interproscan
-		wget ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.62-94.0/interproscan-5.62-94.0-64-bit.tar.gz >> interproscan_setup.txt
-		wget ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.62-94.0/interproscan-5.62-94.0-64-bit.tar.gz.md5 >> interproscan_setup.txt
-
-		# Recommended checksum to confirm the download was successful:
-		md5sum -c interproscan-**.tar.gz.md5 >> interproscan_setup.txt
-		# Must return *interproscan-**.tar.gz: OK*
-		# If not - try downloading the file again as it may be a corrupted copy.
-		tar -pxvzf interproscan-**.tar.gz >> interproscan_setup.txt
-		cd interproscan-5.62-94.0
-		python3 setup.py -f interproscan.properties
-	"""
 
 rule interproscan:
 	input:
@@ -321,7 +333,7 @@ rule interproscan:
 	conda:
 		srcdir("../envs/interproscan.yaml")
 	shell:
-		"./results/intermediate_files/interproscan/interproscan*/interproscan.sh -appl TIGRFAM -pa -dra -b {params} -i {input}"
+		"./results/intermediate_files/interproscan/interproscan*/interproscan.sh -appl NCBIFAM -pa -dra -b {params} -i {input}"
 
 rule cut_tigrfam:
 	input:
@@ -379,7 +391,7 @@ rule eggnog:
 		srcdir("../envs/eggnog.yaml")
 	threads: 16
 	shell:
-		"emapper.py -o {params.prefix} -i {input.sample} --data_dir results/final/eggnog/ -m diamond --dmnd_db {input.diamond} --cpu {threads} --resume"
+		"emapper.py -o {params.prefix} -i {input.sample} --data_dir results/intermediate_files/eggnog/ -m diamond --dmnd_db {input.diamond} --cpu {threads} --resume"
 
 rule build_msgf_db:
 	input:
@@ -431,8 +443,8 @@ rule unipept_prep:
 	input:
 		input = expand("results/intermediate_files/msgf_plus/peptides_{spectra}.txt", spectra=config["MP_samples"])
 	output:
-		output1 = "results/final/diff_abun/MP/unipept_list.txt",
-		output2 = "results/final/diff_abun/MP/pep_abundance_table.txt"
+		output1 = "results/final/MP/unipept_list.txt",
+		output2 = "results/final/MP/pep_abundance_table.txt"
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
@@ -454,14 +466,17 @@ rule diff_abund_MP:
 		metadata = "resources/metadata.txt",
 		taxonomy = "results/final/MP/unipept_results.csv"
 	output:
-		diff_abun_mp = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log"
+		mp_maaslin2_results = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
+		mp_abundance_plot = "results/final/MP/mp_abundance_plot.svg"
 	params:
+		outdir = "results/final/diff_abun/taxa-maaslin2-MP/",
 		param1 = config["parameters"]["group"],
-		param2 = config["parameters"]["taxa_rank"]
+		param2 = config["parameters"]["taxa_rank"],
+		param3 = config["parameters"]["top_taxa"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/taxa_diff_abun_mp.R --group {params.param1} --taxa_rank {params.param2}"
+		"Rscript workflow/scripts/taxa_diff_abun_mp.R --group {params.param1} --taxa_rank {params.param2} --top_taxa {params.param3}"
 
 rule pathway_integration:
 	input:

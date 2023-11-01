@@ -212,7 +212,7 @@ rule sed_MT:
 
 rule kaiju_db:
 	output:
-		nr = "results/intermediate_files/kaiju/kaiju_db/nr/kaiju_db_nr.fmi",
+		nr = "results/intermediate_files/kaiju/kaiju_db/kaiju_db_nr.fmi",
 		nodes = "results/intermediate_files/kaiju/kaiju_db/nodes.dmp",
 		names = "results/intermediate_files/kaiju/kaiju_db/names.dmp"
 	conda:
@@ -220,21 +220,25 @@ rule kaiju_db:
 	shell:
 		"""
 		cd results/intermediate_files/kaiju/kaiju_db/
-		kaiju-makedb -s nr -t 2
+		wget https://kaiju.binf.ku.dk/database/kaiju_db_nr_2020-05-25.tgz
+		tar xzf kaiju_db_nr_2020-05-25.tgz
 		"""
 
 rule kaiju_classify:
 	input:
-		input="results/intermediate_files/kaiju/kaiju_input/{omics}_{sample}_ns.fastq",
+		sample="results/intermediate_files/kaiju/kaiju_input/{omics}_{sample}_ns.fastq",
 		nodes="results/intermediate_files/kaiju/kaiju_db/nodes.dmp",
-		fmi="results/intermediate_files/kaiju/kaiju_db/nr/kaiju_db_nr.fmi"
+		fmi="results/intermediate_files/kaiju/kaiju_db/kaiju_db_nr.fmi"
 	output:
 		output="results/intermediate_files/kaiju/kaiju_output/{omics}/{omics}_{sample}_ns_kaiju.out"
 	conda:
 		srcdir("../envs/kaiju.yaml")
+	resources:
+		gpu=1
+	threads: 16
 	shell:
 		"""
-		kaiju -t {input.nodes} -f {input.fmi} -i {input.input} -o {output}
+		kaiju -t {input.nodes} -f {input.fmi} -i {input.sample} -o {output} -z {threads}
 		"""
 
 rule kaiju_summarize:
@@ -258,12 +262,13 @@ rule diff_abund_MG:
 		log = "results/final/diff_abun/taxa-maaslin2-MG/maaslin2.log",
 		abundance_mg = "results/final/diff_abun/MG/mg_taxa_abundance.txt"
 	params:
-		outdir = "results/final/diff_abun/taxa-maaslin2-MG/",
-		param1 = config["parameters"]["group"]
+		param1 = config["parameters"]["group"],
+		param2 = config["parameters"]["taxa_rank"],
+		param3 = config["parameters"]["top_taxa"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/taxa_diff_abun_mg.R --group {params.param1}"
+		"Rscript workflow/scripts/taxa_diff_abun_mg.R -g {params.param1} -t {params.param2} -n {params.param3}"
 
 rule diff_abund_MT:
 	input:
@@ -272,12 +277,13 @@ rule diff_abund_MT:
 		log = "results/final/diff_abun/taxa-maaslin2-MT/maaslin2.log",
 		abundance_mt = "results/final/diff_abun/MT/mt_taxa_abundance.txt"
 	params:
-		outdir = "results/final/diff_abun/taxa-maaslin2-MT/",
-		param1 = config["parameters"]["group"]
+		param1 = config["parameters"]["group"],
+		param2 = config["parameters"]["taxa_rank"],
+		param3 = config["parameters"]["top_taxa"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/taxa_diff_abun_mt.R --group {params.param1}"
+		"Rscript workflow/scripts/taxa_diff_abun_mt.R -g {params.param1} -t {params.param2} -n {params.param3}"
 
 rule metaspades:
 	input:

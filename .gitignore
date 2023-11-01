@@ -14,3 +14,4 @@ gnomo_slurm_download.sh
 log/
 hs_err*
 temp/
+emapper*

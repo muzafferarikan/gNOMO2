@@ -355,7 +355,8 @@ rule eggnog:
 
 rule pathway_integration:
 	input:
-		input=expand("results/intermediate_files/eggnog/{omics}_{sample}_eggnog.emapper.annotations", omics=config["omics"], sample=config["MG_samples"])
+		input1=expand("results/intermediate_files/eggnog/{omics}_{sample}_eggnog.emapper.annotations", omics=config["omics"], sample=config["MG_samples"]),
+		input2="results/final/MP/ec_abundance.txt"
 	output:
 		output = "results/final/integrated/pathview/log.txt"
 	params:

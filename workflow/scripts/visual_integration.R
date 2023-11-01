@@ -26,7 +26,7 @@ dir.create("results/final/integrated")
 metadata <- read.table("resources/metadata.txt", header=TRUE, sep = "\t", fileEncoding = "UTF-8")
 metadata2 <- column_to_rownames(metadata, var = "SampleID")
 #metadata2$DiseaseStage <- NULL
-metadata2$Sex <- as.factor(metadata2$Sex)
+metadata2$Season <- as.factor(metadata2$Season)
 #metadata2$Stage <- NULL
 metadata3 <- sample_data(metadata2)
 
@@ -90,14 +90,12 @@ if (omics == 2) {
 } else if (omics == 4) {
   # Read MG taxa abundance table
   mg_taxa_abundance <- read.delim("results/final/MG/mg_taxa_abundance.txt", header=TRUE, sep="\t")
-  mg_taxa_abundance
   mg_taxa_abundance <- column_to_rownames(mg_taxa_abundance, var = "taxa")
   mg_taxa_abundance[is.na(mg_taxa_abundance)] <- 0
   mg_taxa_abundance2 <- otu_table(mg_taxa_abundance, taxa_are_rows = TRUE)
   
   # Read MT taxa abundance table
   mt_taxa_abundance <- read.delim("results/final/MT/mt_taxa_abundance.txt", header=TRUE, sep="\t")
-  ec_abundance
   mt_taxa_abundance <- column_to_rownames(mt_taxa_abundance, var = "taxa")
   mt_taxa_abundance[is.na(mt_taxa_abundance)] <- 0
   mt_taxa_abundance2 <- otu_table(mt_taxa_abundance, taxa_are_rows = TRUE)
@@ -155,6 +153,6 @@ if (omics == 2) {
 }
 
 # Set up graphics device for PNG output
-svg("results/final/integrated/combi_plot.svg")
+svg("results/final/integrated/combi_plot.svg",  width=10, height=10)
 plot(microMetaboIntConstr)
 dev.off()

@@ -42,9 +42,18 @@ for (i in 1:length(temp)){
 # create a list of dataframes
 df_list <- mget(ls(pattern = "*kaiju_summary.tsv"))
 
+# sum abundances for same taxons
+sum_abun_by_taxon <- function(df) {
+  df %>%
+    group_by(taxon_name) %>%
+    summarize(total_abun = sum(reads))
+}
+
+result_df_list <- lapply(df_list, sum_abun_by_taxon)
+
 # merge all dataframes in the list by first column (taxon_name)
-merged_df <- df_list %>% reduce(full_join, by='taxon_name') %>% 
-                          column_to_rownames(var = "taxon_name")
+merged_df <- result_df_list %>% reduce(full_join, by='taxon_name') %>% 
+                                column_to_rownames(var = "taxon_name")
 
 # remove unnecessary strings and get sample names
 pats = c("results/intermediate_files/kaiju/kaiju_output/MG/MG_|_kaiju_summary.tsv")
@@ -56,9 +65,10 @@ names(merged_df) <- c(temp_samplenames)
 # remove "unclassified" and viral sequences
 merged_df <- merged_df[!(rownames(merged_df) == "unclassified"), ]
 merged_df <- merged_df[!(rownames(merged_df) == "Viruses"), ]
-rownames(merged_df)[rownames(merged_df) == "cannot be assigned to a (non-viral) genus"] <- "Unassigned_genus"
+merged_df <- merged_df[!(rownames(merged_df) == "cannot be assigned to a (non-viral) genus"), ]
+#rownames(merged_df)[rownames(merged_df) == "cannot be assigned to a (non-viral) genus"] <- "Unassigned_genus"
 
-#perform maaslin analysis
+#perform maaslin2 analysis
 maaslin_results = Maaslin2::Maaslin2(input_data = merged_df,
                                      input_metadata = metadata,
                                      output = "results/final/diff_abun/taxa-maaslin2-MG",
@@ -81,6 +91,7 @@ pep_physeq <- merge_phyloseq(abundance_physeq, metadata, taxonomy_physeq)
 
 # Generate barplot based on relative abundances
 ps_rel <- microbiome::transform(pep_physeq, "compositional")
+
 topn_taxa <- top_taxa(ps_rel, n = opt$top_taxa)
 ps_rel_topn <- prune_taxa(topn_taxa, ps_rel)
 abun_plot <- plot_bar(ps_rel_topn, x = "SampleID", fill="taxa") +
