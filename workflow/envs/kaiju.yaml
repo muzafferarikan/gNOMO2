@@ -1,0 +1,4 @@
+channels:
+ - bioconda
+dependencies:
+ - kaiju=1.9.2

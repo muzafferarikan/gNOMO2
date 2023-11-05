@@ -1,0 +1,6 @@
+channels:
+ - bioconda
+ - conda-forge
+dependencies:
+ - pyteomics=4.1.2
+ - pyhamcrest=1.9.0

@@ -1,0 +1,4 @@
+channels:
+ - bioconda
+dependencies:
+ - msgf_plus=2019.04.18

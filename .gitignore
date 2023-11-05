@@ -7,8 +7,7 @@
 results/
 data/
 config/
-workflow/envs/
-resources/
+resources/metadata*
 gnomo_slurm_template.sh
 gnomo_slurm_download.sh
 log/

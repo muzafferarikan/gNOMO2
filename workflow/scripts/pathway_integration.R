@@ -67,7 +67,7 @@ process_seq <- function(prefix) {
       replace_na(list(summed_value = 0))
   })
   
-  emapper_df_final_list <- emapper_df_list_clean[grepl(prefix, names(emapper_df_list_clean))]
+  emapper_df_final_list <- emapper_df_list_clean[grepl(prefix, names(emapper_df_list_clean))] #subset specified omics dataframes
   
   merged_df <- emapper_df_final_list %>%
     reduce(full_join, by = "V7") %>%

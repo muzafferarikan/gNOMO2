@@ -1,0 +1,32 @@
+name: ncbi
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=2_gnu
+  - appdirs=1.4.4=pyh9f0ad1d_0
+  - ca-certificates=2023.7.22=hbcca054_0
+  - certifi=2016.9.26=py36_0
+  - ld_impl_linux-64=2.40=h41732ed_0
+  - libffi=3.4.2=h7f98852_5
+  - libgcc-ng=13.1.0=he5830b7_0
+  - libgomp=13.1.0=he5830b7_0
+  - libnsl=2.0.0=h7f98852_0
+  - libsqlite=3.42.0=h2797004_0
+  - libstdcxx-ng=13.1.0=hfd8a6a1_0
+  - libzlib=1.2.13=hd590300_5
+  - ncbi-genome-download=0.3.3=pyh7cba7a3_0
+  - ncurses=6.4=hcb278e6_0
+  - openssl=1.1.1v=hd590300_0
+  - pip=20.0.2=py36_1
+  - python=3.6.15=hb7a2778_0_cpython
+  - python_abi=3.6=2_cp36m
+  - readline=8.2=h8228510_1
+  - requests=2.12.5=py36_0
+  - setuptools=49.6.0=py36h5fab9bb_3
+  - sqlite=3.42.0=h2c6b66d_0
+  - tk=8.6.12=h27826a3_0
+  - tqdm=4.7.2=py36_0
+  - wheel=0.36.2=pyhd3deb0d_0
+  - xz=5.2.6=h166bdaf_0

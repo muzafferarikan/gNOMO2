@@ -270,13 +270,14 @@ rule prodigal:
 	input:
 		contigs = "results/intermediate_files/eukrep/{omics}_{sample}/prok_contigs.fasta"
 	output:
-		proteins = "results/intermediate_files/prodigal/{omics}_{sample}/Proteinas.fasta"
+		proteins = "results/intermediate_files/prodigal/{omics}_{sample}/Proteinas.fasta",
+		genes = "results/intermediate_files/prodigal/{omics}_{sample}/Genes.fasta",
+		potential_genes = "results/intermediate_files/prodigal/{omics}_{sample}/PotentialGenes.fasta",
+		gbk = "results/intermediate_files/prodigal/{omics}_{sample}/prodigal_output.gbk"
 	conda:
 		srcdir("../envs/prodigal.yaml")
 	shell:
-		"""
-		prodigal -i {input.contigs} -p meta -a {output.proteins}
-		"""
+		"prodigal -i {input} -d {output.genes} -s {output.potential_genes} -p meta -o {output.gbk} -a {output.proteins}"
 
 rule seqkit_microbial:
 	input:
@@ -320,7 +321,6 @@ rule merge_all_samples:
 		output = "results/final/prot_db/database_MP.fasta"
 	shell:
 		"cat {input} > {output}"
-
 
 rule interproscan:
 	input:
@@ -478,9 +478,78 @@ rule diff_abund_MP:
 	shell:
 		"Rscript workflow/scripts/taxa_diff_abun_mp.R --group {params.param1} --taxa_rank {params.param2} --top_taxa {params.param3}"
 
+rule seqkit_microbial_genes:
+	input:
+		genes = "results/intermediate_files/prodigal/{omics}_{sample}/Genes.fasta"
+	output:
+		unique = "results/intermediate_files/prodigal/{omics}_{sample}/Genes_uniq.fasta"
+	conda:
+		srcdir("../envs/seqkit.yaml")
+	shell:
+		"seqkit rename -1 -O uniq < {input} > {output}"
+
+rule mark_microbial_gene_seqs:
+	input:
+		input = "results/intermediate_files/prodigal/{omics}_{sample}/Genes_uniq.fasta"
+	output:
+		output = "results/intermediate_files/aug_prod/{omics}_{sample}/genes_microbial.fasta"
+	shell:
+		"sed 's/^>/>microbial_/' {input} > {output}"
+
+rule seqkit_host_genes:
+	input:
+		sample = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.codingseq"
+	output:
+		unique = "results/intermediate_files/augustus/{omics}_{sample}/augustus_host_uniq.fasta"
+	conda:
+		srcdir("../envs/seqkit.yaml")
+	shell:
+		"seqkit rename -1 -O uniq < {input} > {output}"
+
+rule mark_host_gene_seqs:
+	input:
+		input = "results/intermediate_files/augustus/{omics}_{sample}/augustus_host_uniq.fasta"
+	output:
+		output = "results/intermediate_files/aug_prod/{omics}_{sample}/genes_host.fasta"
+	shell:
+		"sed 's/^>/>host_/' {input} > {output}"
+
+rule aug_prod_genes:
+	input:
+		host = "results/intermediate_files/aug_prod/{omics}_{sample}/genes_host.fasta",
+		microbial = "results/intermediate_files/aug_prod/{omics}_{sample}/genes_microbial.fasta"
+	output:
+		output = "results/intermediate_files/aug_prod/{omics}_{sample}/all_genes.fasta"
+	shell:
+		"cat {input.host} {input.microbial} > {output}"
+
+rule sed_genes:
+	input:
+		sample = "results/intermediate_files/aug_prod/{omics}_{sample}/all_genes.fasta"
+	output:
+		output = "results/intermediate_files/aug_prod/{omics}_{sample}/all_genes_clean.fasta"
+	shell:
+		"sed 's/*//g' {input} > {output}"
+
+rule calculate_coverage:
+	input:
+		in1 = "results/intermediate_files/trimmed/{omics}/{omics}_{sample}_1.fastq.gz",
+		in2 = "results/intermediate_files/trimmed/{omics}/{omics}_{sample}_2.fastq.gz",
+		genes = "results/intermediate_files/aug_prod/{omics}_{sample}/all_genes_clean.fasta"
+	output:
+		coverage = "results/intermediate_files/aug_prod/{omics}_{sample}/stats.txt",
+		histogram = "results/intermediate_files/aug_prod/{omics}_{sample}/histogram.txt"
+	conda:
+		srcdir("../envs/bbmap.yaml")
+	shell:
+		"bbmap.sh in1={input.in1} in2={input.in2} ref={input.genes} nodisk covstats={output.coverage} covhist={output.histogram}"
+
+
 rule pathway_integration:
 	input:
-		input=expand("results/intermediate_files/eggnog/{omics}_{sample}_eggnog.emapper.annotations", omics=config["omics"], sample=config["MG_samples"])
+		input1 = expand("results/intermediate_files/eggnog/{omics}_{sample}_eggnog.emapper.annotations", omics=config["omics"], sample=config["MG_samples"]),
+		input2 = expand("results/intermediate_files/aug_prod/{omics}_{sample}/stats.txt", omics=config["omics"], sample=config["MG_samples"]),
+		input3 = "results/final/MP/ec_abundance.txt"
 	output:
 		output = "results/final/integrated/pathview/log.txt"
 	params:

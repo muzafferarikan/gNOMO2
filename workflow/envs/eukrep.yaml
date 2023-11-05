@@ -1,0 +1,4 @@
+channels:
+ - bioconda
+dependencies:
+ - eukrep=0.6.7

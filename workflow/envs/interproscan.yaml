@@ -1,0 +1,5 @@
+name: interproscan
+channels:
+ - conda-forge
+dependencies:
+ - openjdk=11.0.1

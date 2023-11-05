@@ -1,0 +1,5 @@
+name: eggnog
+channels:
+ - bioconda
+dependencies:
+ - eggnog-mapper=1.0

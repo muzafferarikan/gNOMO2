@@ -1,0 +1,5 @@
+name: augustus
+channels:
+ - bioconda
+dependencies:
+ - augustus=3.5.0

@@ -1,0 +1,6 @@
+name: flash2
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - flash2=2.2.00
