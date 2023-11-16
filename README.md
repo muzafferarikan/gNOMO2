@@ -1,4 +1,5 @@
-# gNOMO2: a comprehensive and modular pipeline for integrated multi-omics analyses of microbiomes
+<h1 align="center">gNOMO2</h1>
+<h2 align="center">A comprehensive and modular pipeline for integrated multi-omics analyses of microbiomes</h2>
 
 If you use this tool, please cite the preprint:  
   
