@@ -5,7 +5,15 @@
 .snakemake/
 .vscode/
 results/
-data/
+data/old_runs/*
+data/AS/raw/*
+data/MG/raw/*
+data/MT/raw/*
+data/MP/spectra/*
+!data/AS/raw/.gitkeep
+!data/MG/raw/.gitkeep
+!data/MT/raw/.gitkeep
+!data/MP/spectra/.gitkeep
 config/
 resources/metadata*
 gnomo_slurm_template.sh

@@ -1,5 +1,4 @@
-# gNOMO2
-A comprehensive and modular pipeline for integrated multi-omics analysis of microbiomes
+# gNOMO2: a comprehensive and modular pipeline for integrated multi-omics analysis of microbiomes
 
 If you use this tool, please cite the preprint:
 Arikan M, Muth T. (2023) gNOMO2: a comprehensive and modular pipeline for integrated 
@@ -46,8 +45,7 @@ After copying your data and metadata files to the relevant folders, run the foll
 ```
 bash workflow/scripts/prepare_config.sh
 ```
-Now you will find a config.yaml file created inside `config` folder. Check sample names and 
-assigned omics combination for your data and modify listed analysis parameters if you need.
+This script generates a config.yaml file based on contents of "data" directory within `config` folder. Check sample names and assigned omics combination for your data and modify listed analysis parameters according to your analysis and metadata.
 
 ## Running locally
 After completing the steps described above, gNOMO2 is ready to run:
@@ -71,7 +69,7 @@ sbatch path/to/gNOMO2/gnomo_slurm_template.sh
 As soon as you initiate the gNOMO2 pipeline, a new folder named `results` is generated within your project directory. It includes `final` and `intermediate` folders.
 
 ## Final outputs
-`final` folder includes final outputs of the pipeline: differential abundance results for each omics dataset, integrated analysis results (joint-visualization - `combi` and pathway level integration results - `pathview`), a proteogenomic datadase - `prot_db` and results for each omics datasets (abundance tables, phyloseq objects and plots) which can be used for downstream analyses using other microbiome analysis tools. 
+`final` folder includes final outputs of the pipeline: differential abundance results for each omics dataset - `diff_abun`, integrated analysis results (joint-visualization - `combi` and pathway level integration results - `pathview`), a proteogenomic database - `prot_db` and results for each omics datasets (abundance tables, phyloseq objects and plots) within subfolders named accordingly - `AS`,`MG`,`MT`,`MP`. These files can be used for additional analyses using other microbiome analysis tools. 
 
 ## Intermediate outputs
 `intermediate` folder contains outputs of each step executed by gNOMO2 pipeline. 
