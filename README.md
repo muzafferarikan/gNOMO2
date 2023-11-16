@@ -1,6 +1,7 @@
 # gNOMO2: a comprehensive and modular pipeline for integrated multi-omics analyses of microbiomes
 
 If you use this tool, please cite the preprint:  
+  
 Arikan M, Muth T. (2023) gNOMO2: a comprehensive and modular pipeline for integrated 
 multi-omics analyses of microbiomes. bioRxiv. doi: Link
 
@@ -18,7 +19,7 @@ multi-omics analyses of microbiomes. bioRxiv. doi: Link
     - [Intermediate outputs](#intermediate-outputs)
 
 # Installation
-To install gNOMO2, follow these steps:
+To use gNOMO2, ensure you have `conda` and  `snakemake` installed:  
 1. **Install conda**: If you do not have conda installed, [install conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
 2. **Create a Snakemake environment in conda**:
 ```
@@ -28,6 +29,7 @@ conda create -n snakemake -c bioconda snakemake
 ```
 git clone --recursive https://github.com/muzafferarikan/gNOMO2.git
 ```
+**Note**: Once conda and snakemake are set up, gNOMO2 manages the installation of all other tools and dependencies automatically in their respective environments during the first run. 
 
 # Setup
 ## Data
