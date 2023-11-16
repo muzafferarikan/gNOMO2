@@ -58,10 +58,10 @@ EOF
     omics_combination=""
 
     # Check for non-empty folders
-    AS_non_empty=$(ls -A "data/AS/raw")
-    MG_non_empty=$(ls -A "data/MG/raw")
-    MT_non_empty=$(ls -A "data/MT/raw")
-    MP_non_empty=$(ls -A "data/MP/spectra")
+    AS_non_empty=$(ls -A "data/AS/raw"/*.fastq.gz 2>/dev/null || true)
+    MG_non_empty=$(ls -A "data/MG/raw"/*.fastq.gz 2>/dev/null || true)
+    MT_non_empty=$(ls -A "data/MT/raw"/*.fastq.gz 2>/dev/null || true)
+    MP_non_empty=$(ls -A "data/MP/spectra"/*.mgf 2>/dev/null || true)
 
     # Determine the omics_combination number based on conditions
     if [ -n "$AS_non_empty" ] && [ -z "$MG_non_empty" ] && [ -z "$MT_non_empty" ] && [ -z "$MP_non_empty" ]; then

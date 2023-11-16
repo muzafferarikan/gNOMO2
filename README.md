@@ -1,8 +1,8 @@
-# gNOMO2: a comprehensive and modular pipeline for integrated multi-omics analysis of microbiomes
+# gNOMO2: a comprehensive and modular pipeline for integrated multi-omics analyses of microbiomes
 
-If you use this tool, please cite the preprint:
+If you use this tool, please cite the preprint:  
 Arikan M, Muth T. (2023) gNOMO2: a comprehensive and modular pipeline for integrated 
-multi-omics analysis of microbiomes. bioRxiv. doi: Link
+multi-omics analyses of microbiomes. bioRxiv. doi: Link
 
 # Table of contents
 - [Installation](#installation)
@@ -18,58 +18,71 @@ multi-omics analysis of microbiomes. bioRxiv. doi: Link
     - [Intermediate outputs](#intermediate-outputs)
 
 # Installation
-1. If you do not have conda installed: Install [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
-2. Create a Snakemake environment in conda:
+To install gNOMO2, follow these steps:
+1. **Install conda**: If you do not have conda installed, [install conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
+2. **Create a Snakemake environment in conda**:
 ```
 conda create -n snakemake -c bioconda snakemake
 ```
-3. Clone gNOMO2 repository:
+3. **Clone gNOMO2 repository**:
 ```
 git clone --recursive https://github.com/muzafferarikan/gNOMO2.git
 ```
 
 # Setup
 ## Data
-Copy your raw data to the relevant subfolder in `data`. For example if you have amplicon sequencing data, copy your files to `data/AS/raw`, if you have metaproteomics data copy your
-files to `data/MP/spectra`.  
+Copy your raw data to the relevant subfolder in `data` directory. For example:  
+* If you have amplicon sequencing data, copy your files to `data/AS/raw`  
+* If you have metaproteomics data copy your files to `data/MP/spectra`.   
 **Important**: Please make sure sample names have following format: 
-For AS, MG and MT samples: "samplename"_1.fastq.gz, "samplename"_2.fastq.gz
+For AS, MG and MT samples: "samplename"_1.fastq.gz, "samplename"_2.fastq.gz  
 For MP: "samplename".mgf
 
 ## Metadata
-gNOMO2 requires a metadata file to perform sample group comparisons. Create a tab delimited metadata file containig information about samples and copy it to `resources` folder.  
+gNOMO2 requires a metadata file to perform sample group comparisons. Create a tab delimited metadata file containig information about samples and place it in the `resources` folder.  
+
 **Important**: The name of first column in metadata file must be "SampleID".
 
 ## Config
-After copying your data and metadata files to the relevant folders, run the following script (from your main project folder) to create a config file for your run: 
+After copying your data and metadata, run the following script from your main project folder to generate a config file:   
 ```
 bash workflow/scripts/prepare_config.sh
 ```
-This script generates a config.yaml file based on contents of "data" directory within `config` folder. Check sample names and assigned omics combination for your data and modify listed analysis parameters according to your analysis and metadata.
+This script generates a config.yaml file based on contents of "data" directory within `config` folder. Review and modify analysis parameters in this file according to your analysis and metadata.
 
+# Running
 ## Running locally
-After completing the steps described above, gNOMO2 is ready to run:
-1. Activate your snakemake environment in conda:
+Once setup is complete, follow these steps to run gNOMO2:  
+1. **Activate your snakemake environment in conda**:
 ```
 conda activate snakemake
 ```
-2. Run gNOMO2 from your project folder. The value for --cores should be adjusted to reflect the number of cores available. 
+2. **Run gNOMO2**:  
+Execute the following command from your project folder:
 ```
 snakemake -s workflow/Snakefile --cores 2 --use-conda
 ```
+**Note**: Adjust the `--cores` value to reflect the number of cores available.  
 
 ## Running on a cluster
-1. Fill in the "gnomo_slurm_template.sh" file provided in the main gNOMO2 folder according to your cluster settings.
-2. From your home directory in the cluster environemnt run gNOMO2:
+To run gNOMO2 on a cluster:  
+1. **Configure the cluster settings**:  
+Edit the provided "gnomo_slurm_template.sh" file in the main gNOMO2 folder according to your cluster settings.
+2. **Run gNOMO2**:  
+Execute the following command from your home directory in the cluster environemnt:
 ```
 sbatch path/to/gNOMO2/gnomo_slurm_template.sh
 ```
 
 # Outputs
-As soon as you initiate the gNOMO2 pipeline, a new folder named `results` is generated within your project directory. It includes `final` and `intermediate` folders.
+When gNOMO2 pipeline starts, it generates a `results` folder within your project directory, containing both `final` and `intermediate` outputs.
 
 ## Final outputs
-`final` folder includes final outputs of the pipeline: differential abundance results for each omics dataset - `diff_abun`, integrated analysis results (joint-visualization - `combi` and pathway level integration results - `pathview`), a proteogenomic database - `prot_db` and results for each omics datasets (abundance tables, phyloseq objects and plots) within subfolders named accordingly - `AS`,`MG`,`MT`,`MP`. These files can be used for additional analyses using other microbiome analysis tools. 
+The `final` folder includes:  
+* Differential abundance analysis results for each omics dataset (`diff_abun`)  
+* Integrated multi-omics analysis results (joint-visualization results (`combi`) and pathway level integration results (`pathview`))  
+* A proteogenomic database (`prot_db`)  
+* Results for each omics datasets (abundance tables, phyloseq objects and plots) within subfolders named accordingly (`AS`,`MG`,`MT`,`MP`). These files are suitable for further analyses using other microbiome analysis tools. 
 
 ## Intermediate outputs
-`intermediate` folder contains outputs of each step executed by gNOMO2 pipeline. 
+`intermediate` folder contains outputs of each step executed by the gNOMO2 pipeline. 
