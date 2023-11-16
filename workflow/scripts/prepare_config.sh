@@ -71,6 +71,8 @@ EOF
     elif [ -z "$AS_non_empty" ] && [ -n "$MG_non_empty" ] && [ -z "$MT_non_empty" ] && [ -n "$MP_non_empty" ]; then
         omics_combination="3"
     elif [ -z "$AS_non_empty" ] && [ -n "$MG_non_empty" ] && [ -n "$MT_non_empty" ] && [ -z "$MP_non_empty" ]; then
+        omics_combination="4"       
+    elif [ -z "$AS_non_empty" ] && [ -n "$MG_non_empty" ] && [ -n "$MT_non_empty" ] && [ -n "$MP_non_empty" ]; then
         omics_combination="5"
     elif [ -n "$AS_non_empty" ] && [ -n "$MG_non_empty" ] && [ -n "$MT_non_empty" ] && [ -n "$MP_non_empty" ]; then
         omics_combination="6"
