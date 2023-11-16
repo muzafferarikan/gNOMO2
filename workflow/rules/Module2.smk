@@ -115,8 +115,8 @@ rule add_host:
 		params = config["host"]
 	shell:
 		"""
-		echo {params.params} > resources/host.txt 
-		cat {input} resources/host.txt > {output}
+		echo {params.params} > results/intermediate_files/host.txt 
+		cat {input} results/intermediate_files/host.txt > {output}
 		"""
 
 checkpoint downloadgenomes:

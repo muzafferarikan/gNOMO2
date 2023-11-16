@@ -4,8 +4,7 @@
 # Description:
 #   This script performs a pathway level integrated analysis of multi-omics
 #   data. It covers data loading (emapper results), preprocessing, differential
-#   abundance analysis and pathway based data integration and visualization.
-
+#   abundance analysis for each omics level and pathway based visualization.
 
 # Load necessary packages
 library(phyloseq)
@@ -31,39 +30,83 @@ fill_empty_cells <- function(df) {
   return(df)
 }
 
-# Function for processing emapper results and output tables for pathview  
+# Function for removing the redundant parts in names in coverage stat results
+remove_first_redundant_part <- function(df) {
+  df[, 1] <- sub("\\s*#.*$", "", df[, 1])
+  df[, 1] <- gsub("cov_[0-9]+\\.[0-9]+\\.NODE_[0-9]+_length_[0-9]+_", "", df[, 1], perl = TRUE)
+  return(df)
+}
+
+# Function for processing emapper results and output tables for pathview
 process_seq <- function(prefix) {
   
-  ## Read emapper result files
+  # Read emapper result files
   eggnog_files <- list.files(
     path = "results/intermediate_files/eggnog",
-    pattern = "*eggnog.emapper.annotations",
+    pattern = ".*_eggnog.emapper.annotations",
     full.names = TRUE
   )
   
-  ## Import emapper result files
+  # Import emapper result files
   eggnog_data <- lapply(eggnog_files, function(file_path) {
-    read.table(
+    data <- read.table(
       file_path,
       sep = "\t",
       header = FALSE,
       skip = 4,
       quote = ""
     )
+    data[, c(1, 7)]
   })
   
-  ## Create a df list of emapper results
-  emapper_df_list <- setNames(eggnog_data, eggnog_files)
+  # Extract the sample names from the full file names
+  sample_name <- gsub("_eggnog.emapper.annotations", "", basename(eggnog_files))
   
-  ## Create a new list of data frames without empty cells
+  # Create a dataframe list of emapper results
+  emapper_df_list <- setNames(eggnog_data, sample_name)
+  
+  # Create a new list of data frames without empty cells
   emapper_df_list_filled <- lapply(emapper_df_list, fill_empty_cells)
   
-  ## Extract coverage values and merge identical KEGG IDs
-  emapper_df_list_clean <- lapply(emapper_df_list_filled, function(dataframe) {
+  # Read coverage stat files
+  aug_prod_file <- file.path("results/intermediate_files/aug_prod", sample_name, "stats.txt")
+  
+  # Import coverage result files
+  coverage_data <- lapply(aug_prod_file, function(file_path) {
+    data <- read.table(
+      file_path,
+      sep = "\t",
+      header = FALSE,
+      quote = "",
+      skip = 1,
+      comment.char = "@"
+    )
+    data[, 1:2]
+  })
+  
+  # Create a dataframe list of coverage results
+  coverage_df_list <- setNames(coverage_data, sample_name)
+  
+  # Apply the redundancy removal function to each data frame in the list
+  coverage_df_list_modified <- lapply(coverage_df_list, remove_first_redundant_part)
+  
+  # Initialize an empty list to store the merged data frames
+  merged_list <- list()
+  
+  # Loop through the data frame names
+  for (name in names(emapper_df_list_filled)) {
+    # Merge data frames with the same name based on the first column (ID)
+    merged_df <- merge(emapper_df_list_filled[[name]], coverage_df_list_modified[[name]], by.x = 1, by.y = 1, all = FALSE)
+    
+    # Add the merged data frame to the new list
+    merged_list[[name]] <- merged_df
+  }
+  
+  # Extract coverage values and merge identical KEGG IDs
+  emapper_df_list_clean <- lapply(merged_list, function(dataframe) {
     dataframe %>%
-      mutate(V1 = as.numeric(str_remove_all(V1, ".*cov_|\\.g|_.*"))) %>%
       group_by(V7) %>%
-      summarise(summed_value = sum(V1)) %>%
+      summarise(summed_value = sum(V2)) %>%
       replace_na(list(summed_value = 0))
   })
   
@@ -76,7 +119,6 @@ process_seq <- function(prefix) {
   pats <- paste0("results/intermediate_files/eggnog/", prefix, "_|_eggnog.emapper.annotations")
   temp <- list.files(path = "results/intermediate_files/eggnog", pattern = paste0(prefix, ".*eggnog\\.emapper\\.annotations"), full.names = TRUE)
   sample_names <- str_replace_all(temp, pats, "")
-  
   colnames(merged_df) <- sample_names
   
   merged_df2 <- rownames_to_column(merged_df, var = "KEGG")
@@ -99,7 +141,6 @@ process_seq <- function(prefix) {
   kegg_df2 <- kegg_df[diff_abun_kegg, ]
   result <- data.frame(ID = rownames(kegg_df2))
   rownames(result) <- result$ID
-  result$ID <- NULL
   
   unique_groups <- unique(metadata[[opt$group]])
   
@@ -113,13 +154,14 @@ process_seq <- function(prefix) {
   foldchange <- result[[unique_groups[[2]]]] / result[[unique_groups[[1]]]]
   log2_ratios <- log2(foldchange)
   
-  ## Add the prefix to the "log2_ratios" column name
+  # Add the prefix to the "log2_ratios" column name
   log2_ratios_column_name <- paste0("log2_ratios_", prefix)
-  result[[log2_ratios_column_name]] <- log2_ratios  
+  result[[log2_ratios_column_name]] <- log2_ratios
+  
+  result$ID <- NULL
   
   return(result)
 }
-
 
 # Function for processing unipept based EC abundance table for pathview 
 process_ec_abundance <- function(ec_abundance_file, metadata) {
@@ -151,12 +193,11 @@ process_ec_abundance <- function(ec_abundance_file, metadata) {
   )
   
   ## Filtering differentially abundant features
-  diff_abun_mp <- maaslin_results_mp$results %>% data.frame() %>% filter(qval < 1)
+  diff_abun_mp <- maaslin_results_mp$results %>% data.frame()
   diff_abun_mp_kegg <- diff_abun_mp$feature
   ec_matched2 <- ec_matched[diff_abun_mp_kegg, ]
   result_mp <- data.frame(ID = rownames(ec_matched2))
   rownames(result_mp) <- result_mp$ID
-  result_mp$ID <- NULL
 
   unique_groups <- unique(metadata[[opt$group]])
 
@@ -173,11 +214,12 @@ process_ec_abundance <- function(ec_abundance_file, metadata) {
   ## Add the prefix to the "log2_ratios" column name
   log2_ratios_column_name <- paste0("log2_ratios_", "MP")
   result_mp[[log2_ratios_column_name]] <- log2_ratios_mp 
-
+  
+  result_mp$ID <- NULL
+  
   return(result_mp)
 
 }
-
 
 # Function for replacing Inf values in log2ratio tables
 replace_inf <- function(column) {
@@ -185,7 +227,6 @@ replace_inf <- function(column) {
   column[column == -Inf] <- -1
   return(column)
 }
-
 
 # Function for performing integrated pathway analysis  
 perform_pathway_analysis <- function(omics, metadata) {
@@ -219,8 +260,12 @@ perform_pathway_analysis <- function(omics, metadata) {
     result_to_merge_mg <- result_mg[row.names(result_mg) %in% common_kegg, ]
     result_to_merge_mt <- result_mt[row.names(result_mt) %in% common_kegg, ]
     result_to_merge_mp <- result_mp[row.names(result_mp) %in% common_kegg, ]
-    merged_results_common <- merge(result_to_merge_mg,
+    merged_results_common_temp1 <- merge(result_to_merge_mg,
                                    result_to_merge_mt,
+                                   by = "row.names",
+                                   all = FALSE)
+    merged_results_common_temp2 <- column_to_rownames(merged_results_common_temp1, var = "Row.names")
+    merged_results_common <- merge(merged_results_common_temp2,
                                    result_to_merge_mp,
                                    by = "row.names",
                                    all = FALSE)

@@ -153,6 +153,6 @@ if (omics == 2) {
 }
 
 # Set up graphics device for PNG output
-svg("results/final/integrated/combi_plot.svg",  width=10, height=10)
+svg("results/final/integrated/combi_plot.svg")
 plot(microMetaboIntConstr)
 dev.off()

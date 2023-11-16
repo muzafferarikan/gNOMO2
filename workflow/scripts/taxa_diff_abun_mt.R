@@ -65,8 +65,8 @@ names(merged_df) <- c(temp_samplenames)
 # remove "unclassified" and viral sequences
 merged_df <- merged_df[!(rownames(merged_df) == "unclassified"), ]
 merged_df <- merged_df[!(rownames(merged_df) == "Viruses"), ]
-merged_df <- merged_df[!(rownames(merged_df) == "cannot be assigned to a (non-viral) genus"), ]
-#rownames(merged_df)[rownames(merged_df) == "cannot be assigned to a (non-viral) genus"] <- "Unassigned_genus"
+#merged_df <- merged_df[!(rownames(merged_df) == "cannot be assigned to a (non-viral) genus"), ]
+rownames(merged_df)[rownames(merged_df) == "cannot be assigned to a (non-viral) genus"] <- "Unassigned_genus"
 
 #perform maaslin2 analysis
 maaslin_results = Maaslin2::Maaslin2(input_data = merged_df,
