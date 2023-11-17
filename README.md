@@ -8,7 +8,7 @@ multi-omics analyses of microbiomes. bioRxiv. doi: Link
 
 # Table of contents
 - [Overview](#overview)
-- [Installation](#installation)
+- [Requirements](#requirements)
 - [Setup](#setup)
     - [Data](#data)
     - [Metadata](#metadata)
@@ -21,11 +21,11 @@ multi-omics analyses of microbiomes. bioRxiv. doi: Link
     - [Intermediate outputs](#intermediate-outputs)
 
 # Overview
-gNOMO2 comprises six modules, each tailored for specific omics data combination (shown below). Module 1 accepts 16S rRNA gene amplicon sequencing data (AS) as input and generates a protein database suitable for metaproteomics studies, a taxa abundance plot and a phyloseq object that can be used for downstream analysis in other microbiome tools. Modules 2 to 6 handle different combinations of AS, metagenomics (MG), metatranscriptomics (MT), and metaproteomics(MP) data, creating omics-specific protein databases, abundance tables, plots, differential abundance analysis results, and pathway-level integration analysis results. 
+gNOMO2 comprises six modules, each tailored for specific omics data combination (shown below). Module 1 accepts 16S rRNA gene amplicon sequencing (AS) data as input and generates a protein database suitable for metaproteomics studies, a taxa abundance plot and a phyloseq object that can be used for downstream analysis in other microbiome tools. Modules 2 to 6 handle different combinations of AS, metagenomics (MG), metatranscriptomics (MT), and metaproteomics(MP) data, creating omics-specific protein databases, abundance tables, plots, differential abundance analysis results, joint visualization and pathway-level integration analysis results. 
 
 ![Local Image](images/pipeline_overview.jpg)
 
-# Installation
+# Requirements
 To use gNOMO2, ensure you have `conda` and  `snakemake` installed: 
    
 **1. Install conda**: If you do not have conda installed, [install conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).  
@@ -36,7 +36,7 @@ conda create -n snakemake -c bioconda snakemake
 ```
   
 
-**3. Clone gNOMO2 repository**:
+**3. Clone gNOMO2 repository**: If you do not have git installed, [install git](https://github.com/git-guides/install-git).
 ```
 git clone --recursive https://github.com/muzafferarikan/gNOMO2.git
 ```
