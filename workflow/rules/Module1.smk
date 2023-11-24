@@ -1,17 +1,64 @@
-# 1:  Amplicon sequencing 
+# Module:		1
+# Description:	This module processes amplicon sequencing data and generates a protein database for metaproteomics
 
 import os
 import yaml 
 
 ruleorder: trimPE > trimSE
+ruleorder: fastqc_raw_pe > fastqc_raw_se
+ruleorder: fastqc_trim_pe > fastqc_trim_se
+ruleorder: merge_pe > gunzip_se
 
 rule all:
 	input:
+		qc_raw_report = "results/intermediate_files/multiqc/AS/raw/multiqc_report.html",
+		qc_trim_report = "results/intermediate_files/multiqc/AS/trim/multiqc_report.html",
 		silvadb = "results/intermediate_files/silva_db/silva_nr99_v138.1_train_set.fa.gz", 
 		top_taxa_and_host_names = "results/intermediate_files/top_taxa_host.txt",
 		as_abundance_plot = "results/final/AS/as_abundance_plot.svg",
 		as_based_database = "results/final/prot_db/as_based_database.fa",
 		diff_abun_as = "results/final/diff_abun/taxa-maaslin2-AS/maaslin2.log"
+
+rule fastqc_raw_pe:
+	input:
+		r1=expand("data/AS/raw/{sample}_1.fastq.gz", sample=config["AS_samples"]),
+		r2=expand("data/AS/raw/{sample}_2.fastq.gz", sample=config["AS_samples"])
+	output:
+		directory("results/intermediate_files/fastqc/raw/AS")
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
+	shell:
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} {input.r2} -o {output}
+		"""
+
+rule fastqc_raw_se:
+	input:
+		r1=expand("data/AS/raw/{sample}_1.fastq.gz", sample=config["AS_samples"])
+	output:
+		directory("results/intermediate_files/fastqc/raw/AS")
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
+	shell:
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} -o {output}
+		"""
+
+rule multiqc_raw:
+	input:
+		fastqc_html = "results/intermediate_files/fastqc/raw/AS"
+	output:
+		output = "results/intermediate_files/multiqc/AS/raw/multiqc_report.html"
+	params:
+		output_dir =  "results/intermediate_files/multiqc/AS/raw/"
+	conda:
+		srcdir("../envs/multiqc.yaml")
+	shell:
+		"multiqc {input} -o {params.output_dir}"
 
 rule trimPE:
 	input:
@@ -31,39 +78,109 @@ rule trimPE:
 
 rule trimSE:
 	input:
-		r1="data/AS/raw/{sample}.fastq.gz"
+		r1="data/AS/raw/{sample}_1.fastq.gz"
 	output:
-		o1="results/intermediate_files/trimmed/AS/{sample}.fastq.gz"
+		o1="results/intermediate_files/trimmed/AS/{sample}_1.fastq.gz",
+		o2="results/intermediate_files/trimmed/AS/{sample}_2.fastq.gz",
+		o1un="results/intermediate_files/trimmed/AS/{sample}_1un.trim.fastq.gz",
+		o2un="results/intermediate_files/trimmed/AS/{sample}_2un.trim.fastq.gz"
 	params:
 		params = config["parameters"]["trimmomatic"]
 	conda:
 		srcdir("../envs/trimmomatic.yaml")
 	shell:
-		"trimmomatic SE {input.r1} {output.o1} {params.params}"
+		"""
+		trimmomatic SE -threads {threads} {input.r1} {output.o1} {params.params}
+		touch {output.o2} {output.o1un} {output.o2un}
+		"""
 
-rule gunzipSE:
+rule fastqc_trim_pe:
 	input:
-		trimmed_se = "results/intermediate_files/trimmed/AS/{sample}.fastq.gz"
+		r1=expand("results/intermediate_files/trimmed/AS/clean/AS_{sample}_1.fastq.gz", sample=config["AS_samples"]),
+		r2=expand("results/intermediate_files/trimmed/AS/clean/AS_{sample}_2.fastq.gz", sample=config["AS_samples"])
 	output:
-		output = "results/intermediate_files/merged/AS/{sample}.extendedFrags.fastq"
+		directory("results/intermediate_files/fastqc/trim/AS")
+	params:
+		out="results/intermediate_files/fastqc/trim/AS"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
 	shell:
-		"gunzip -c {input} > {output}"
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} {input.r2} -o {params.out}
+		"""
 
-rule mergePE:
+rule fastqc_trim_se:
 	input:
-		o1="results/intermediate_files/trimmed/AS/{sample}_1.fastq.gz",
-		o2="results/intermediate_files/trimmed/AS/{sample}_2.fastq.gz"
+		r1=expand("results/intermediate_files/trimmed/AS/clean/AS_{sample}_1.fastq.gz", sample=config["AS_samples"])
 	output:
-		f1="results/intermediate_files/merged/AS/{sample}.extendedFrags.fastq",
-		f2="results/intermediate_files/merged/AS/{sample}.notCombined_1.fastq",
-		f3="results/intermediate_files/merged/AS/{sample}.notCombined_2.fastq"
+		directory("results/intermediate_files/fastqc/trim/AS")
+	params:
+		out="results/intermediate_files/fastqc/trim/AS"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
+	shell:
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} -o {params.out}
+		"""
+
+rule multiqc_trim:
+	input:
+		fastqc_html = "results/intermediate_files/fastqc/trim/AS"
+	output:
+		output = "results/intermediate_files/multiqc/AS/trim/multiqc_report.html"
+	params:
+		output_dir =  "results/intermediate_files/multiqc/AS/trim/"
+	conda:
+		srcdir("../envs/multiqc.yaml")
+	shell:
+		"multiqc {input} -o {params.output_dir}"
+
+rule clean_empty:
+	input:
+		r1=expand("results/intermediate_files/trimmed/AS/AS_{sample}_1.fastq.gz", sample=config["AS_samples"])
+	output:
+		output1=expand("results/intermediate_files/trimmed/AS/clean/AS_{sample}_1.fastq.gz", sample=config["AS_samples"]),
+		output2="results/intermediate_files/trimmed/AS/clean/empty_files_deleted.txt"
+	shell:
+		"""
+		cp results/intermediate_files/trimmed/AS/*.fastq.gz results/intermediate_files/trimmed/AS/clean
+		find results/intermediate_files/trimmed/AS/clean -type f -empty -delete
+		ls results/intermediate_files/trimmed/AS/clean > results/intermediate_files/trimmed/AS/clean/empty_files_deleted.txt
+		"""
+
+rule merge_pe:
+	input:
+		o1="results/intermediate_files/trimmed/AS/clean/AS_{sample}_1.fastq.gz",
+		o2="results/intermediate_files/trimmed/AS/clean/AS_{sample}_2.fastq.gz"
+	output:
+		f1="results/intermediate_files/merged/AS/AS_{sample}.extendedFrags.fastq",
+		f2="results/intermediate_files/merged/AS/AS_{sample}.notCombined_1.fastq",
+		f3="results/intermediate_files/merged/AS/AS_{sample}.notCombined_2.fastq"
 	params:
 		dir = "results/intermediate_files/merged/AS/",
-		gid = "{sample}"
+		gid = "AS_{sample}"
 	conda:
 		srcdir("../envs/flash2.yaml")
 	shell:
 		"flash2 {input.o1} {input.o2} -d {params.dir} -o {params.gid} --allow-outies"
+
+rule gunzip_se:
+	input:
+		input="results/intermediate_files/trimmed/AS/clean/AS_{sample}_1.fastq.gz",
+		empty_removed="results/intermediate_files/trimmed/AS/clean/empty_files_deleted.txt"
+	output:
+		f1="results/intermediate_files/merged/AS/AS_{sample}.extendedFrags.fastq",
+		f2="results/intermediate_files/merged/AS/AS_{sample}.notCombined_1.fastq",
+		f3="results/intermediate_files/merged/AS/AS_{sample}.notCombined_2.fastq"
+	shell:
+		"""
+		gunzip -c {input.input} > {output.f1}
+		touch {output.f2} {output.f3}
+		"""
 
 rule download_silvadb:
 	output:

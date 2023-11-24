@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Title: Prepare Snakemake Configuration File
+# Title: Prepare Snakemake Configuration File for gNOMO2
 # Author: Muzaffer Arikan
 # Date: Sep 2023
 # Description:
@@ -18,7 +18,9 @@ format_files() {
     r2_file="data/$folder/raw/${sample_name}_2.fastq.gz"
 
     if [ -f "$r1_file" ] && [ -f "$r2_file" ]; then
-        echo "         \"$sample_name\": [r1:\"$r1_file\", r2:\"$r2_file\"]" >> "$output_file"
+        echo "      \"$sample_name\": [r1:\"$r1_file\", r2:\"$r2_file\"]" >> "$output_file"
+    elif [ -f "$r1_file" ]; then
+        echo "      \"$sample_name\": [r1:\"$r1_file\"]" >> "$output_file"
     fi
 }
 
@@ -30,7 +32,7 @@ format_mp_files() {
     mgf_file="data/$folder/spectra/${sample_name}.mgf"
 
     if [ -f "$mgf_file" ]; then
-        echo "         \"$sample_name\": $mgf_file" >> "$output_file"
+        echo "      \"$sample_name\": $mgf_file" >> "$output_file"
     fi
 }
 
@@ -170,7 +172,7 @@ fi
         # List files for AS folder
         if [ -n "$AS_non_empty" ]; then
         	echo >> "$output_file" # Empty line
-            echo "   AS_Samples:" >> "$output_file"
+            echo "   AS_samples:" >> "$output_file"
             for file in data/AS/raw/*_1.fastq.gz; do
                 base=$(basename "$file" _1.fastq.gz)
                 format_files "AS" "$base"
@@ -180,7 +182,7 @@ fi
         # List files for MG folder
         if [ -n "$MG_non_empty" ]; then
             echo >> "$output_file" # Empty line
-            echo "   MG_Samples:" >> "$output_file"
+            echo "   MG_samples:" >> "$output_file"
             for file in data/MG/raw/*_1.fastq.gz; do
                 base=$(basename "$file" _1.fastq.gz)
                 format_files "MG" "$base"
@@ -190,7 +192,7 @@ fi
         # List files for MT folder
         if [ -n "$MT_non_empty" ]; then
             echo >> "$output_file" # Empty line
-            echo "   MT_Samples:" >> "$output_file"
+            echo "   MT_samples:" >> "$output_file"
             for file in data/MT/raw/*_1.fastq.gz; do
                 base=$(basename "$file" _1.fastq.gz)
                 format_files "MT" "$base"
@@ -200,7 +202,7 @@ fi
         # List files for MP folder
         if [ -n "$MP_non_empty" ]; then
             echo >> "$output_file" # Empty line
-            echo "   MP_Samples:" >> "$output_file"
+            echo "   MP_samples:" >> "$output_file"
             for file in data/MP/spectra/*.mgf; do
                 base=$(basename "$file" .mgf)
                 format_mp_files "$base"

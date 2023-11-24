@@ -12,7 +12,7 @@ library(Maaslin2)
 library(microbiome)
 library(optparse)
 
-# define arguments
+# Define command line arguments
 commandArgs(trailing=TRUE)
 
 option_list <- list(
@@ -20,7 +20,6 @@ option_list <- list(
   make_option(c("-t", "--taxa_rank"), type = "character", default="Genus", help = "enter taxa rank"),
   make_option(c("-n", "--top_taxa"), type = "character", default = "5", help = "Enter most abundant taxa number")
 )
-
 opt <- parse_args(OptionParser(option_list=option_list))
 
 # Get metadata, abundance and taxonomy tables
@@ -37,7 +36,7 @@ taxonomy <- read_csv("results/final/MP/unipept_results.csv",
                      trim_ws = TRUE
                      )
 
-# keep only peptides that have taxonomic assignment by unipept and vice versa
+# Keep only peptides that have taxonomic assignment by unipept and vice versa
 taxonomy$X9 <- gsub("^;", "", taxonomy$X9)
 taxonomy_cleaned <- subset(taxonomy, !grepl("[;-]", X9))
 taxonomy_uniq = taxonomy_cleaned[!duplicated(taxonomy_cleaned$X1),]
@@ -48,11 +47,10 @@ colnames(taxonomy_matched) <- c("peptide", "Kingdom", "Phylum", "Class",
                              "Order", "Family", "Genus", "Species", "EC"
                              )
 
-# prepare abundance table with EC ids
+# Prepare abundance table with EC ids
 taxonomy_ec <- taxonomy_matched[c("peptide","EC")]
 ec_abundance <- merge(abundance_matched, taxonomy_ec, by="peptide", all=FALSE) %>% filter(EC != "")
 ec_abundance$peptide <- NULL
-
 
 # Define function to sum values within each role
 sum_duplicates <- function(dataframe) {
@@ -65,22 +63,19 @@ sum_duplicates <- function(dataframe) {
 ec_abundance2 <- sum_duplicates(ec_abundance) %>%
   column_to_rownames(var = "EC")
 
-# save final dataframe for pathway level integrated analysis
+# Save final dataframe for pathway level integrated analysis
 write.table(ec_abundance2, "results/final/MP/ec_abundance.txt", quote = FALSE, 
             col.names=TRUE,row.names = TRUE, sep="\t")
 
-# prepare taxonomy table for phyloseq merge
+# Prepare taxonomy table for phyloseq merge
 taxonomy_noec <- taxonomy_matched[-c(9)] 
 
-#subset the table by user defined taxonomic rank
-#taxonomy_noec_subsetted <- taxonomy_noec[c("peptide", opt$taxa_rank)]
-
-# prepare abundance table for phyloseq
+# Prepare abundance table for phyloseq
 abundance_matched2 <- column_to_rownames(abundance_matched, var = "peptide")
 abundance_matched2[is.na(abundance_matched2)] <- "0"
 abundance_matched2[] <- lapply(abundance_matched2, as.numeric)
 
-# prepare phyloseq components
+# Prepare phyloseq components
 abundance_matched_physeq <- otu_table(abundance_matched2, 
                                       taxa_are_rows = TRUE
                                       )
@@ -89,7 +84,7 @@ taxonomy_matched_physeq <- column_to_rownames(taxonomy_noec, var = "peptide") %>
                            as.matrix() %>%
                            tax_table()
 
-# create a phyloseq object
+# Create a phyloseq object
 pep_physeq <- merge_phyloseq(abundance_matched_physeq, metadata, taxonomy_matched_physeq)     
 pep_physeq_2 <- pep_physeq %>% subset_taxa(opt$taxa_rank != "")
 
@@ -101,19 +96,19 @@ ps_rel_taxa_topn <- prune_taxa(topn_taxa, ps_rel_taxa)
 abun_plot <- plot_bar(ps_rel_taxa_topn, x = "SampleID", fill = opt$taxa_rank) +
                   facet_grid(as.formula(paste("~", opt$group)), scales = "free", space = "free")
 
-# Write output files (abundance barplot, phyloseq object, and most abundant taxa names)
+# Save abundance barplot
 svg("results/final/MP/mp_abundance_plot.svg")
 abun_plot
 dev.off()
 
-# write peptide physeq for further analyses 
+# Write peptide physeq for further analyses 
 saveRDS(pep_physeq_2, file = "results/final/MP/peptide_phyloseq.Rdata")
 
-# prepare abundance table for maaslin2 analysis
+# Prepare abundance table for maaslin2 analysis
 pep_physeq_3 <- aggregate_taxa(pep_physeq_2, level=opt$taxa_rank)
 otu <- as(otu_table(pep_physeq_3),"matrix") %>% as.data.frame()
 
-# perform differential abundance analysis
+# Perform differential abundance analysis
 maaslin_results = Maaslin2::Maaslin2(input_data = otu,
                                      input_metadata = metadata,
                                      output = "results/final/diff_abun/taxa-maaslin2-MP",

@@ -1,14 +1,23 @@
-
-# 6:  Amplicon sequencing + Metagenomics + Metatranscriptomics + Metaproteomics
+# Module:		6
+# Description:	This module processes amplicon sequencing, metagenomics, metatranscriptomics and metaproteomics data
 
 import os
 import yaml 
 
 ruleorder: trimPE > trimSE
+ruleorder: fastqc_raw_pe > fastqc_raw_se
+ruleorder: fastqc_trim_pe > fastqc_trim_se
+ruleorder: mergePE > gunzipSE
+ruleorder: cat_pe > gunzipSE
+ruleorder: rnaspades_pe > rnaspades_se
 
 rule all:
 	input:
-		silvadb = "results/intermediate_files/silva_db/silva_nr99_v138.1_train_set.fa.gz" , 
+		qc_raw_report = expand("results/intermediate_files/multiqc/{omics}/multiqc_raw_report.html", omics=config["omics"]),
+		qc_trim_report = expand("results/intermediate_files/multiqc/{omics}/multiqc_trim_report.html", omics=config["omics"]),
+		silvadb = "results/intermediate_files/silva_db/silva_nr99_v138.1_train_set.fa.gz",
+		as_qc_raw_report = "results/intermediate_files/multiqc/AS/multiqc_raw_report.html",
+		as_qc_trim_report = "results/intermediate_files/multiqc/AS/multiqc_trim_report.html", 
 		top_taxa_and_host_names = "results/intermediate_files/top_taxa_host.txt",
 		as_abundance_plot = "results/final/AS/as_abundance_plot.svg",
 		as_based_database = "results/final/prot_db/as_based_database.fa",
@@ -26,6 +35,52 @@ rule all:
 		peptide_list = "results/final/MP/unipept_list.txt",
 		unipept_results = "results/final/MP/unipept_results.csv",
 		diff_abun_results_mp = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log"
+
+module Module1:
+	snakefile: "Module1.smk"
+	config: config
+
+use rule * from Module1 as Module1_*
+
+rule fastqc_raw_pe:
+	input:
+		r1="data/{omics}/raw/{sample}_1.fastq.gz",
+		r2="data/{omics}/raw/{sample}_2.fastq.gz"
+	output:
+		fastqc_html = "results/intermediate_files/fastqc/raw/{omics}/{sample}_fastqc.html"
+	params:
+		output_folder = "results/intermediate_files/fastqc/raw/{omics}/"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
+	shell:
+		"fastqc -t {threads} {input.r1} {input.r2} -o {params} --extract"
+
+rule fastqc_raw_se:
+	input:
+		r1="data/{omics}/raw/{sample}_1.fastq.gz"
+	output:
+		fastqc_html = "results/intermediate_files/fastqc/{omics}/{sample}_fastqc.html"
+	params:
+		output_folder = "results/intermediate_files/fastqc/raw/{omics}/"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
+	shell:
+		"fastqc -t {threads} {input.r1} -o {params} --extract"
+
+rule multiqc_raw:
+	input:
+		sample = expand("results/intermediate_files/fastqc/raw/{omics}/{sample}_fastqc.html", omics=config["omics"], sample=config["MG_samples"])
+	output:
+		output = "results/intermediate_files/multiqc/multiqc_raw_report.html"
+	params:
+		input_dir = "results/intermediate_files/fastqc/raw/{omics}/",
+		output_dir =  "results/intermediate_files/multiqc"
+	conda:
+		srcdir("../envs/multiqc.yaml")
+	shell:
+		"multiqc {params.input_dir} -o {params.output_dir}"
 
 rule trimPE:
 	input:
@@ -45,15 +100,55 @@ rule trimPE:
 
 rule trimSE:
 	input:
-		r1="data/AS/raw/{sample}.fastq.gz"
+		r1="data/{omics}/raw/{sample}_1.fastq.gz"
 	output:
-		o1="results/intermediate_files/trimmed/{omics}/AS_{sample}.fastq.gz"
+		o1="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_1.fastq.gz"
 	params:
 		params = config["parameters"]["trimmomatic"]
 	conda:
 		srcdir("../envs/trimmomatic.yaml")
 	shell:
 		"trimmomatic SE {input.r1} {output.o1} {params.params}"
+
+rule fastqc_trim_pe:
+	input:
+		r1="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_1.fastq.gz",
+		r2="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_2.fastq.gz",
+	output:
+		fastqc_html = "results/intermediate_files/fastqc/trim/{omics}/{sample}_fastqc.html"
+	params:
+		output_folder = "results/intermediate_files/fastqc/trim/{omics}/"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
+	shell:
+		"fastqc -t {threads} {input.r1} {input.r2} -o {params} --extract"
+
+rule fastqc_trim_se:
+	input:
+		r1="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_1.fastq.gz"
+	output:
+		fastqc_html = "results/intermediate_files/fastqc/trim/{omics}/{sample}_fastqc.html"
+	params:
+		output_folder = "results/intermediate_files/fastqc/trim/{omics}/"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
+	shell:
+		"fastqc -t {threads} {input.r1} -o {params} --extract"
+
+rule multiqc_trim:
+	input:
+		sample = expand("results/intermediate_files/fastqc/trim/{omics}/{sample}_fastqc.html", omics=config["omics"], sample=config["MG_samples"])
+	output:
+		output = "results/intermediate_files/multiqc/{omics}/multiqc_trim_report.html"
+	params:
+		input_dir = "results/intermediate_files/fastqc/trim/{omics}/",
+		output_dir =  "results/intermediate_files/multiqc/{omics}"
+	conda:
+		srcdir("../envs/multiqc.yaml")
+	shell:
+		"multiqc {params.input_dir} -o {params.output_dir}"
 
 rule gunzipSE:
 	input:
@@ -442,6 +537,27 @@ rule merge_all_samples:
 	shell:
 		"cat {input} > {output}"
 
+rule interproscan_setup:
+	input:
+		database = "results/intermediate_files/prot_db/database_MP.fasta"
+	output:
+		output = "results/intermediate_files/interproscan/interproscan_setup.txt"
+	shell:
+		"""
+		mkdir -p results/intermediate_files/interproscan 
+		cd results/intermediate_files/interproscan
+		wget ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.62-94.0/interproscan-5.62-94.0-64-bit.tar.gz >> interproscan_setup.txt
+		wget ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.62-94.0/interproscan-5.62-94.0-64-bit.tar.gz.md5 >> interproscan_setup.txt
+
+		# Recommended checksum to confirm the download was successful:
+		md5sum -c interproscan-**.tar.gz.md5 >> interproscan_setup.txt
+		# Must return *interproscan-**.tar.gz: OK*
+		# If not - try downloading the file again as it may be a corrupted copy.
+		tar -pxvzf interproscan-**.tar.gz >> interproscan_setup.txt
+		cd interproscan-5.62-94.0
+		python3 setup.py -f interproscan.properties
+	"""
+	
 rule interproscan:
 	input:
 		sample = "results/intermediate_files/aug_prod/{omics}_{sample}/all_proteins_clean.fasta",
@@ -530,7 +646,7 @@ rule build_msgf_db:
 	conda:
 		srcdir("../envs/msgfplus.yaml")
 	shell:
-		"msgf_plus -Xmx16000M edu.ucsd.msjava.msdbsearch.BuildSA -d {input}"
+		"msgf_plus -Xmx200G edu.ucsd.msjava.msdbsearch.BuildSA -d {input}"
 
 rule run_msgf:
 	input:
@@ -596,7 +712,8 @@ rule diff_abund_MP:
 		taxonomy = "results/final/MP/unipept_results.csv"
 	output:
 		mp_maaslin2_results = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
-		mp_abundance_plot = "results/final/MP/mp_abundance_plot.svg"
+		mp_abundance_plot = "results/final/MP/mp_abundance_plot.svg",
+		ec_abundance = "results/final/MP/ec_abundance.txt"
 	params:
 		outdir = "results/final/diff_abun/taxa-maaslin2-MP/",
 		param1 = config["parameters"]["group"],

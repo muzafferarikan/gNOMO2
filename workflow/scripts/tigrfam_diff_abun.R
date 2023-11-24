@@ -11,6 +11,7 @@ library(tidyverse)
 library(Maaslin2)
 library(optparse)
 
+# Define command line arguments
 commandArgs(trailing=TRUE)
 
 option_list <- list( 

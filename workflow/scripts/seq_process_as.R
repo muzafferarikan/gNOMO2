@@ -107,10 +107,11 @@ abun_plot <- plot_bar(ps_rel_taxa_topn, x = "SampleID", fill = opt$taxa_rank) +
 topn_taxa_2 <- gsub("Other", "", gsub("Unknown", "", topn_taxa))
 topn_taxa_3 <- as.character(topn_taxa_2[topn_taxa_2 != ""])
 
-# perform differential abundance analysis
+# Aggregate taxa at user defined level
 ps_clean_rank <- aggregate_taxa(ps_clean, level = opt$taxa_rank)
 otu <- as(otu_table(ps_clean_rank),"matrix") %>% as.data.frame()
 
+# Perform differential abundance analysis
 maaslin_results = Maaslin2::Maaslin2(input_data = otu,
                                      input_metadata = metadata,
                                      output = "results/final/diff_abun/taxa-maaslin2-AS",
@@ -118,13 +119,15 @@ maaslin_results = Maaslin2::Maaslin2(input_data = otu,
                                      standardize = FALSE
                                      )
 
-# Write output files (abundance barplot, phyloseq object, and most abundant taxa names)
+# Save taxa abundance plot
 svg("results/final/AS/as_abundance_plot.svg")
 abun_plot
 dev.off()
 
+# Write top n most abundant taxa names 
 write.table(topn_taxa_3, "results/intermediate_files/top_taxa.txt", quote = FALSE, col.names = FALSE, row.names = FALSE, sep = "\t")
 
+# Save phyloseq object
 saveRDS(ps_clean, "results/final/AS/as_physeq.rds")
 
 print("Completed successfully.")

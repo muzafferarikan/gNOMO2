@@ -1,12 +1,21 @@
-# 4:  Metagenomics + Metatranscriptomics
+# Module:		4
+# Description:	This module processes metagenomics and metatranscriptomics data
+
 
 import os
 import yaml 
 
 ruleorder: trimPE > trimSE
+ruleorder: fastqc_raw_mt_pe > fastqc_raw_mt_se
+ruleorder: fastqc_trim_mt_pe > fastqc_trim_mt_se
+ruleorder: merge_mt > gunzip_se
+ruleorder: rnaspades_pe > rnaspades_se
+ruleorder: calculate_coverage_pe > calculate_coverage_se
 
 rule all:
 	input:
+		qc_raw_report = expand("results/intermediate_files/multiqc/{omics}/raw/multiqc_report.html", omics=config["omics"]),
+		qc_trim_report = expand("results/intermediate_files/multiqc/{omics}/trim/multiqc_report.html", omics=config["omics"]),
 		interproscan_db = "results/final/prot_db/database_MP.fasta",
 		interproscan_setup = "results/intermediate_files/interproscan/interproscan_setup.txt",
 		diff_abun_results_mg = "results/final/diff_abun/taxa-maaslin2-MG/maaslin2.log",
@@ -15,6 +24,62 @@ rule all:
 		diff_abun_tigrfam_results_mt = "results/final/diff_abun/tigrfam-maaslin2-MT/maaslin2.log",
 		pathview_results = "results/final/integrated/pathview/log.txt",
 		combi_results = "results/final/integrated/combi_plot.svg"
+
+rule fastqc_raw_pe:
+	input:
+		r1=expand("data/MG/raw/{sample}_1.fastq.gz", sample=config["MG_samples"]),
+		r2=expand("data/MG/raw/{sample}_2.fastq.gz", sample=config["MG_samples"])
+	output:
+		directory("results/intermediate_files/fastqc/raw/MG")
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
+	shell:
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} {input.r2} -o {output}
+		"""
+
+rule fastqc_raw_mt_pe:
+	input:
+		r1=expand("data/MT/raw/{sample}_1.fastq.gz", sample=config["MT_samples"]),
+		r2=expand("data/MT/raw/{sample}_2.fastq.gz", sample=config["MT_samples"])
+	output:
+		directory("results/intermediate_files/fastqc/raw/MT")
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
+	shell:
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} {input.r2} -o {output}
+		"""
+
+rule fastqc_raw_mt_se:
+	input:
+		r1=expand("data/MT/raw/{sample}_1.fastq.gz", sample=config["MT_samples"])
+	output:
+		directory("results/intermediate_files/fastqc/raw/MT")
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
+	shell:
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} -o {output}
+		"""
+
+rule multiqc_raw:
+	input:
+		fastqc_html = "results/intermediate_files/fastqc/raw/{omics}"
+	output:
+		output = "results/intermediate_files/multiqc/{omics}/raw/multiqc_report.html"
+	params:
+		output_dir =  "results/intermediate_files/multiqc/{omics}/raw/"
+	conda:
+		srcdir("../envs/multiqc.yaml")
+	shell:
+		"multiqc {input} -o {params.output_dir}"
 
 rule trimPE:
 	input:
@@ -29,45 +94,150 @@ rule trimPE:
 		params = config["parameters"]["trimmomatic"]
 	conda:
 		srcdir("../envs/trimmomatic.yaml")
+	threads: 16
 	shell:
-		"trimmomatic PE {input.r1} {input.r2} {output.o1} {output.o1un} {output.o2} {output.o2un} {params.params}"
+		"trimmomatic PE -threads {threads} {input.r1} {input.r2} {output.o1} {output.o1un} {output.o2} {output.o2un} {params.params}"
 
 rule trimSE:
 	input:
-		r1="data/{omics}/raw/{sample}.fastq.gz"
+		r1="data/{omics}/raw/{sample}_1.fastq.gz"
 	output:
-		o1="results/intermediate_files/trimmed/{omics}/{sample}.fastq.gz"
+		o1="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_1.fastq.gz",
+		o2="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_2.fastq.gz",
+		o1un="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_1un.trim.fastq.gz",
+		o2un="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_2un.trim.fastq.gz"
 	params:
 		params = config["parameters"]["trimmomatic"]
 	conda:
 		srcdir("../envs/trimmomatic.yaml")
+	threads: 16
 	shell:
-		"trimmomatic SE {input.r1} {output.o1} {params.params}"
+		"""
+		trimmomatic SE -threads {threads} {input.r1} {output.o1} {params.params}
+		touch {output.o2} {output.o1un} {output.o2un}
+		"""
 
-rule gunzipSE:
+rule fastqc_trim_pe:
 	input:
-		input="results/intermediate_files/trimmed/{omics}/{omics}_{sample}.fastq.gz"
+		r1=expand("results/intermediate_files/trimmed/MG/MG_{sample}_1.fastq.gz", sample=config["MG_samples"]),
+		r2=expand("results/intermediate_files/trimmed/MG/MG_{sample}_2.fastq.gz", sample=config["MG_samples"])
 	output:
-		output="results/intermediate_files/merged/{omics}/{omics}_{sample}.extendedFrags.fastq"
-	shell:
-		"gunzip -c {input} > {output}"
-
-rule mergePE:
-	input:
-		o1="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_1.fastq.gz",
-		o2="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_2.fastq.gz"
-	output:
-		f1="results/intermediate_files/merged/{omics}/{omics}_{sample}.extendedFrags.fastq",
-		f2="results/intermediate_files/merged/{omics}/{omics}_{sample}.notCombined_1.fastq",
-		f3="results/intermediate_files/merged/{omics}/{omics}_{sample}.notCombined_2.fastq"
+		directory("results/intermediate_files/fastqc/trim/MG")
 	params:
-		dir = "results/intermediate_files/merged/{omics}/",
-		gid = "{omics}_{sample}"
+		out="results/intermediate_files/fastqc/trim/MG"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
+	shell:
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} {input.r2} -o {params.out}
+		"""
+
+rule fastqc_trim_mt_pe:
+	input:
+		r1=expand("results/intermediate_files/trimmed/MT/clean/MT_{sample}_1.fastq.gz", sample=config["MT_samples"]),
+		r2=expand("results/intermediate_files/trimmed/MT/clean/MT_{sample}_2.fastq.gz", sample=config["MT_samples"])
+	output:
+		directory("results/intermediate_files/fastqc/trim/MT")
+	params:
+		out="results/intermediate_files/fastqc/trim/MT"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
+	shell:
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} {input.r2} -o {params.out}
+		"""
+
+rule fastqc_trim_mt_se:
+	input:
+		r1=expand("results/intermediate_files/trimmed/MT/clean/MT_{sample}_1.fastq.gz", sample=config["MT_samples"])
+	output:
+		directory("results/intermediate_files/fastqc/trim/MT")
+	params:
+		out="results/intermediate_files/fastqc/trim/MT"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 16
+	shell:
+		"""
+		mkdir -p {output}
+		fastqc -t {threads} {input.r1} -o {params.out}
+		"""
+
+rule multiqc_trim:
+	input:
+		fastqc_html = "results/intermediate_files/fastqc/trim/{omics}"
+	output:
+		output = "results/intermediate_files/multiqc/{omics}/trim/multiqc_report.html"
+	params:
+		output_dir =  "results/intermediate_files/multiqc/{omics}/trim/"
+	conda:
+		srcdir("../envs/multiqc.yaml")
+	shell:
+		"multiqc {input} -o {params.output_dir}"
+
+rule clean_empty:
+	input:
+		r1=expand("results/intermediate_files/trimmed/MT/MT_{sample}_1.fastq.gz", sample=config["MT_samples"])
+	output:
+		output1=expand("results/intermediate_files/trimmed/MT/clean/MT_{sample}_1.fastq.gz", sample=config["MT_samples"]),
+		output2="results/intermediate_files/trimmed/MT/clean/empty_files_deleted.txt"
+	shell:
+		"""
+		cp results/intermediate_files/trimmed/MT/*.fastq.gz results/intermediate_files/trimmed/MT/clean
+		find results/intermediate_files/trimmed/MT/clean -type f -empty -delete
+		ls results/intermediate_files/trimmed/MT/clean > results/intermediate_files/trimmed/MT/clean/empty_files_deleted.txt
+		"""
+
+rule merge_mg:
+	input:
+		o1="results/intermediate_files/trimmed/MG/MG_{sample}_1.fastq.gz",
+		o2="results/intermediate_files/trimmed/MG/MG_{sample}_2.fastq.gz"
+	output:
+		f1="results/intermediate_files/merged/MG/MG_{sample}.extendedFrags.fastq",
+		f2="results/intermediate_files/merged/MG/MG_{sample}.notCombined_1.fastq",
+		f3="results/intermediate_files/merged/MG/MG_{sample}.notCombined_2.fastq"
+	params:
+		dir = "results/intermediate_files/merged/MG/",
+		gid = "MG_{sample}"
 	conda:
 		srcdir("../envs/flash2.yaml")
 	shell:
 		"flash2 {input.o1} {input.o2} -d {params.dir} -o {params.gid} --allow-outies"
-	
+
+rule merge_mt:
+	input:
+		o1="results/intermediate_files/trimmed/MT/clean/MT_{sample}_1.fastq.gz",
+		o2="results/intermediate_files/trimmed/MT/clean/MT_{sample}_2.fastq.gz"
+	output:
+		f1="results/intermediate_files/merged/MT/MT_{sample}.extendedFrags.fastq",
+		f2="results/intermediate_files/merged/MT/MT_{sample}.notCombined_1.fastq",
+		f3="results/intermediate_files/merged/MT/MT_{sample}.notCombined_2.fastq"
+	params:
+		dir = "results/intermediate_files/merged/MT/",
+		gid = "MT_{sample}"
+	conda:
+		srcdir("../envs/flash2.yaml")
+	shell:
+		"flash2 {input.o1} {input.o2} -d {params.dir} -o {params.gid} --allow-outies"
+
+rule gunzip_se:
+	input:
+		input="results/intermediate_files/trimmed/MT/clean/MT_{sample}_1.fastq.gz",
+		empty_removed="results/intermediate_files/trimmed/MT/clean/empty_files_deleted.txt"
+	output:
+		f1="results/intermediate_files/merged/MT/MT_{sample}.extendedFrags.fastq",
+		f2="results/intermediate_files/merged/MT/MT_{sample}.notCombined_1.fastq",
+		f3="results/intermediate_files/merged/MT/MT_{sample}.notCombined_2.fastq"
+	shell:
+		"""
+		gunzip -c {input.input} > {output.f1}
+		touch {output.f2} {output.f3}
+		"""
+
 rule cat:
 	input:
 		f1="results/intermediate_files/merged/{omics}/{omics}_{sample}.extendedFrags.fastq",
@@ -80,7 +250,7 @@ rule cat:
 
 rule sed:
 	input:
-		MG="results/intermediate_files/merged/{omics}/{omics}_{sample}/all.fastq"
+		input="results/intermediate_files/merged/{omics}/{omics}_{sample}/all.fastq"
 	output:
 		output="results/intermediate_files/kaiju/kaiju_input/{omics}_{sample}_ns.fastq"
 	shell:
@@ -175,10 +345,11 @@ rule metaspades:
 	shell:
 		"metaspades.py -1 {input.i1} -2 {input.i2} -o {params.outdir}"
 
-rule rnaspades:
+rule rnaspades_pe:
 	input:
-		i1="results/intermediate_files/trimmed/MT/MT_{sample}_1.fastq.gz",
-		i2="results/intermediate_files/trimmed/MT/MT_{sample}_2.fastq.gz"
+		i1="results/intermediate_files/trimmed/MT/clean/MT_{sample}_1.fastq.gz",
+		i2="results/intermediate_files/trimmed/MT/clean/MT_{sample}_2.fastq.gz",
+		empty_removed="results/intermediate_files/trimmed/MT/clean/empty_files_deleted.txt"
 	params:
 		outdir = "results/intermediate_files/spades/MT_{sample}/"
 	output:
@@ -188,6 +359,20 @@ rule rnaspades:
 	threads: 16
 	shell:
 		"rnaspades.py -1 {input.i1} -2 {input.i2} -o {params.outdir}"
+
+rule rnaspades_se:
+	input:
+		i1="results/intermediate_files/trimmed/MT/clean/MT_{sample}_1.fastq.gz",
+		empty_removed="results/intermediate_files/trimmed/MT/clean/empty_files_deleted.txt"
+	params:
+		outdir = "results/intermediate_files/spades/MT_{sample}/"
+	output:
+		output = "results/intermediate_files/spades/MT_{sample}/transcripts.fasta"
+	conda:
+		srcdir("../envs/spades.yaml")
+	threads: 16
+	shell:
+		"rnaspades.py -s {input.i1} -o {params.outdir}"
 
 rule seqkit_contigs_mg:
 	input:
@@ -238,7 +423,8 @@ rule getAnnoFasta:
 	input:
 		sample = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.gff"
 	output:
-		output = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.aa"
+		output = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.aa",
+		output2 = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.codingseq"
 	conda:
 		srcdir("../envs/perl.yaml")
 	shell:
@@ -266,13 +452,14 @@ rule prodigal:
 	input:
 		contigs = "results/intermediate_files/eukrep/{omics}_{sample}/prok_contigs.fasta"
 	output:
-		proteins = "results/intermediate_files/prodigal/{omics}_{sample}/Proteinas.fasta"
+		proteins = "results/intermediate_files/prodigal/{omics}_{sample}/Proteinas.fasta",
+		genes = "results/intermediate_files/prodigal/{omics}_{sample}/Genes.fasta",
+		potential_genes = "results/intermediate_files/prodigal/{omics}_{sample}/PotentialGenes.fasta",
+		gbk = "results/intermediate_files/prodigal/{omics}_{sample}/prodigal_output.gbk"
 	conda:
 		srcdir("../envs/prodigal.yaml")
 	shell:
-		"""
-		prodigal -i {input.contigs} -p meta -a {output.proteins}
-		"""
+		"prodigal -i {input} -d {output.genes} -s {output.potential_genes} -p meta -o {output.gbk} -a {output.proteins}"
 
 rule seqkit_microbial:
 	input:
@@ -316,7 +503,6 @@ rule merge_all_samples:
 		output = "results/final/prot_db/database_MP.fasta"
 	shell:
 		"cat {input} > {output}"
-
 
 rule interproscan:
 	input:
@@ -442,25 +628,50 @@ rule sed_genes:
 	shell:
 		"sed 's/*//g' {input} > {output}"
 
-rule calculate_coverage:
+rule calculate_coverage_mg:
 	input:
-		in1 = "results/intermediate_files/trimmed/{omics}/{omics}_{sample}_1.fastq.gz",
-		in2 = "results/intermediate_files/trimmed/{omics}/{omics}_{sample}_2.fastq.gz",
-		genes = "results/intermediate_files/aug_prod/{omics}_{sample}/all_genes_clean.fasta"
+		in1 = "results/intermediate_files/trimmed/MG/MG_{sample}_1.fastq.gz",
+		in2 = "results/intermediate_files/trimmed/MG/MG_{sample}_2.fastq.gz",
+		genes = "results/intermediate_files/aug_prod/MG_{sample}/all_genes_clean.fasta"
 	output:
-		coverage = "results/intermediate_files/aug_prod/{omics}_{sample}/stats.txt",
-		histogram = "results/intermediate_files/aug_prod/{omics}_{sample}/histogram.txt"
+		coverage = "results/intermediate_files/aug_prod/MG_{sample}/stats.txt",
+		histogram = "results/intermediate_files/aug_prod/MG_{sample}/histogram.txt"
 	conda:
 		srcdir("../envs/bbmap.yaml")
 	shell:
 		"bbmap.sh in1={input.in1} in2={input.in2} ref={input.genes} nodisk covstats={output.coverage} covhist={output.histogram}"
 
+rule calculate_coverage_pe:
+	input:
+		in1 = "results/intermediate_files/trimmed/MT/clean/MT_{sample}_1.fastq.gz",
+		in2 = "results/intermediate_files/trimmed/MT/clean/MT_{sample}_2.fastq.gz",
+		genes = "results/intermediate_files/aug_prod/MT_{sample}/all_genes_clean.fasta",
+		output2="results/intermediate_files/trimmed/MT/clean/empty_files_deleted.txt"
+	output:
+		coverage = "results/intermediate_files/aug_prod/MT_{sample}/stats.txt",
+		histogram = "results/intermediate_files/aug_prod/MT_{sample}/histogram.txt"
+	conda:
+		srcdir("../envs/bbmap.yaml")
+	shell:
+		"bbmap.sh in1={input.in1} in2={input.in2} ref={input.genes} nodisk covstats={output.coverage} covhist={output.histogram}"
+
+rule calculate_coverage_se:
+	input:
+		in1 = "results/intermediate_files/trimmed/MT/clean/MT_{sample}_1.fastq.gz",
+		genes = "results/intermediate_files/aug_prod/MT_{sample}/all_genes_clean.fasta",
+		output2="results/intermediate_files/trimmed/MT/clean/empty_files_deleted.txt"
+	output:
+		coverage = "results/intermediate_files/aug_prod/MT_{sample}/stats.txt",
+		histogram = "results/intermediate_files/aug_prod/MT_{sample}/histogram.txt"
+	conda:
+		srcdir("../envs/bbmap.yaml")
+	shell:
+		"bbmap.sh in1={input.in1} ref={input.genes} nodisk covstats={output.coverage} covhist={output.histogram}"
 
 rule pathway_integration:
 	input:
 		input1 = expand("results/intermediate_files/eggnog/{omics}_{sample}_eggnog.emapper.annotations", omics=config["omics"], sample=config["MG_samples"]),
-		input2 = expand("results/intermediate_files/aug_prod/{omics}_{sample}/stats.txt", omics=config["omics"], sample=config["MG_samples"]),
-		input3 = "results/final/MP/ec_abundance.txt"
+		input2 = expand("results/intermediate_files/aug_prod/{omics}_{sample}/stats.txt", omics=config["omics"], sample=config["MG_samples"])
 	output:
 		output = "results/final/integrated/pathview/log.txt"
 	params:

@@ -12,6 +12,7 @@ library(tidyverse)
 library(microbiome)
 library(optparse)
 
+# Define command line arguments
 commandArgs(trailing=TRUE)
 
 option_list <- list( 
@@ -20,14 +21,12 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list=option_list))
 
+# Create output directory
 dir.create("results/final/integrated")
 
 # Read metadata table, config file and unipept and emapper result files
 metadata <- read.table("resources/metadata.txt", header=TRUE, sep = "\t", fileEncoding = "UTF-8")
 metadata2 <- column_to_rownames(metadata, var = "SampleID")
-#metadata2$DiseaseStage <- NULL
-metadata2$Season <- as.factor(metadata2$Season)
-#metadata2$Stage <- NULL
 metadata3 <- sample_data(metadata2)
 
 # Read snakemake config file

@@ -1,4 +1,4 @@
-# Title: Pathway Level Integrated Analysis
+# Title: Pathway Level Integrated Analysis for Multi-Omics Data
 # Author: Muzaffer Arikan
 # Date: July 2023
 # Description:
@@ -14,6 +14,7 @@ library(pathview)
 library(KEGGREST)
 library(gtools)
 
+# Define command line arguments
 commandArgs(trailing=TRUE)
 
 option_list <- list( 
@@ -292,7 +293,6 @@ perform_pathway_analysis <- function(omics, metadata) {
 }
 ###############################################################################
 
-
 # Create output directory
 dir.create("results/final/integrated/pathview")
 
@@ -312,7 +312,6 @@ ko2path$KEGG <- gsub("ko.", "", ko2path$KEGG)
 ko2path$V1 <- gsub("path:map", "", ko2path$V1)
 
 sink("results/final/integrated/pathview/log.txt", append = TRUE)
-
 
 # Perform integrated pathway analysis
 pathway_analysis_result <- perform_pathway_analysis(omics, metadata)

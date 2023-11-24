@@ -1,12 +1,14 @@
-# Module3:  Metagenomics + Metaproteomics
+# Module:		3
+# Description:	This module processes metagenomics and metaproteomics data
+
 
 import os
 import yaml 
 
-ruleorder: trimPE > trimSE
-
 rule all:
 	input:
+		qc_raw_report = "results/intermediate_files/multiqc/MG/multiqc_raw_report.html",
+		qc_trim_report = "results/intermediate_files/multiqc/MG/multiqc_trim_report.html",
 		interproscan_db = "results/intermediate_files/prot_db/database_MP.fasta",
 		interproscan_setup = "results/intermediate_files/interproscan/interproscan_setup.txt",
 		msgf_db = "results/final/prot_db/db_ready.fasta",
@@ -20,6 +22,33 @@ rule all:
 		diff_abun_tigrfam_results = "results/final/diff_abun/tigrfam-maaslin2-MG/maaslin2.log",
 		pathview_results = "results/final/integrated/pathview/log.txt",
 		combi_results = "results/final/integrated/combi_plot.svg"
+
+rule fastqc_raw_pe:
+	input:
+		r1="data/{omics}/raw/{sample}_1.fastq.gz",
+		r2="data/{omics}/raw/{sample}_2.fastq.gz"
+	output:
+		fastqc_html = "results/intermediate_files/fastqc/raw/MG/{sample}_fastqc.html"
+	params:
+		output_folder = "results/intermediate_files/fastqc/raw/MG/"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
+	shell:
+		"fastqc -t {threads} {input.r1} {input.r2} -o {params} --extract"
+
+rule multiqc_raw:
+	input:
+		sample = expand("results/intermediate_files/fastqc/raw/MG/{sample}_fastqc.html", sample=config["MG_samples"])
+	output:
+		output = "results/intermediate_files/multiqc/MG/multiqc_raw_report.html"
+	params:
+		input_dir = "results/intermediate_files/fastqc/raw/MG/",
+		output_dir =  "results/intermediate_files/multiqc/MG/"
+	conda:
+		srcdir("../envs/multiqc.yaml")
+	shell:
+		"multiqc {params.input_dir} -o {params.output_dir}"
 
 rule trimPE:
 	input:
@@ -37,25 +66,32 @@ rule trimPE:
 	shell:
 		"trimmomatic PE {input.r1} {input.r2} {output.o1} {output.o1un} {output.o2} {output.o2un} {params.params}"
 
-rule trimSE:
+rule fastqc_trim_pe:
 	input:
-		r1="data/{omics}/raw/{sample}.fastq.gz"
+		r1="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_1.fastq.gz",
+		r2="results/intermediate_files/trimmed/{omics}/{omics}_{sample}_2.fastq.gz",
 	output:
-		o1="results/intermediate_files/trimmed/{omics}/{sample}.fastq.gz"
+		fastqc_html = "results/intermediate_files/fastqc/trim/MG/{sample}_fastqc.html"
 	params:
-		params = config["parameters"]["trimmomatic"]
+		output_folder = "results/intermediate_files/fastqc/trim/MG/"
 	conda:
-		srcdir("../envs/trimmomatic.yaml")
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
 	shell:
-		"trimmomatic SE {input.r1} {output.o1} {params.params}"
+		"fastqc -t {threads} {input.r1} {input.r2} -o {params} --extract"
 
-rule gunzipSE:
+rule multiqc_trim:
 	input:
-		input="results/intermediate_files/trimmed/{omics}/{omics}_{sample}.fastq.gz"
+		sample = expand("results/intermediate_files/fastqc/trim/MG/{sample}_fastqc.html", sample=config["MG_samples"])
 	output:
-		output="results/intermediate_files/merged/{omics}/{omics}_{sample}.extendedFrags.fastq"
+		output = "results/intermediate_files/multiqc/MG/multiqc_trim_report.html"
+	params:
+		input_dir = "results/intermediate_files/fastqc/trim/MG/",
+		output_dir =  "results/intermediate_files/multiqc/MG"
+	conda:
+		srcdir("../envs/multiqc.yaml")
 	shell:
-		"gunzip -c {input} > {output}"
+		"multiqc {params.input_dir} -o {params.output_dir}"
 
 rule mergePE:
 	input:
@@ -182,7 +218,8 @@ rule getAnnoFasta:
 	input:
 		sample = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.gff"
 	output:
-		output = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.aa"
+		output1 = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.aa",
+		output2 = "results/intermediate_files/augustus/{omics}_{sample}/augustus_output.codingseq"
 	conda:
 		srcdir("../envs/perl.yaml")
 	shell:
@@ -508,7 +545,8 @@ rule diff_abund_MP:
 		taxonomy = "results/final/MP/unipept_results.csv"
 	output:
 		mp_maaslin2_results = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
-		mp_abundance_plot = "results/final/MP/mp_abundance_plot.svg"
+		mp_abundance_plot = "results/final/MP/mp_abundance_plot.svg",
+		ec_abundance = "results/final/MP/ec_abundance.txt"
 	params:
 		outdir = "results/final/diff_abun/taxa-maaslin2-MP/",
 		param1 = config["parameters"]["group"],

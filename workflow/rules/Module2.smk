@@ -1,15 +1,18 @@
-# 2:  Amplicon sequencing + Metaproteomics
+# Module:		2
+# Description:	This module processes amplicon sequencing data and metaproteomics data
+
 
 import os
 import yaml 
 
-# Config file to store initial input data
-configfile: "config.yaml"
-
 ruleorder: trimPE > trimSE
+ruleorder: fastqc_raw_pe > fastqc_raw_se
+ruleorder: fastqc_trim_pe > fastqc_trim_se
 
 rule all:
 	input:
+		qc_raw_report = "results/intermediate_files/multiqc/AS/multiqc_raw_report.html",
+		qc_trim_report = "results/intermediate_files/multiqc/AS/multiqc_trim_report.html",
 		silvadb = "results/intermediate_files/silva_db/silva_nr99_v138.1_train_set.fa.gz", 
 		top_taxa_and_host_names = "results/intermediate_files/top_taxa_host.txt",
 		as_abundance_plot = "results/final/AS/as_abundance_plot.svg",
@@ -20,6 +23,46 @@ rule all:
 		unipept_results = "results/final/MP/unipept_results.csv",
 		diff_abun_mp = "results/final/diff_abun/taxa-maaslin2-MP/maaslin2.log",
 		combi_results = "results/final/integrated/combi_plot.svg"
+
+rule fastqc_raw_pe:
+	input:
+		r1="data/AS/raw/{sample}_1.fastq.gz",
+		r2="data/AS/raw/{sample}_2.fastq.gz"
+	output:
+		fastqc_html = "results/intermediate_files/fastqc/raw/AS/{sample}_fastqc.html"
+	params:
+		output_folder = "results/intermediate_files/fastqc/raw/AS/"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
+	shell:
+		"fastqc -t {threads} {input.r1} {input.r2} -o {params} --extract"
+
+rule fastqc_raw_se:
+	input:
+		r1="data/AS/raw/{sample}_1.fastq.gz"
+	output:
+		fastqc_html = "results/intermediate_files/fastqc/AS/{sample}_fastqc.html"
+	params:
+		output_folder = "results/intermediate_files/fastqc/raw/AS/"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
+	shell:
+		"fastqc -t {threads} {input.r1} -o {params} --extract"
+
+rule multiqc_raw:
+	input:
+		sample = expand("results/intermediate_files/fastqc/raw/AS/{sample}_fastqc.html", sample=config["AS_samples"])
+	output:
+		output = "results/intermediate_files/multiqc/AS/multiqc_raw_report.html"
+	params:
+		input_dir = "results/intermediate_files/fastqc/raw/AS/",
+		output_dir =  "results/intermediate_files/multiqc/AS/"
+	conda:
+		srcdir("../envs/multiqc.yaml")
+	shell:
+		"multiqc {params.input_dir} -o {params.output_dir}"
 
 rule trimPE:
 	input:
@@ -39,15 +82,58 @@ rule trimPE:
 
 rule trimSE:
 	input:
-		r1="data/AS/raw/{sample}.fastq.gz"
+		r1="data/AS/raw/{sample}_1.fastq.gz"
 	output:
-		o1="results/intermediate_files/trimmed/AS/{sample}.fastq.gz"
+		o1="results/intermediate_files/trimmed/AS/{sample}_1.fastq.gz",
+		o2="results/intermediate_files/trimmed/AS/{sample}_2.fastq.gz",
+		o1un="results/intermediate_files/trimmed/AS/{sample}_1un.trim.fastq.gz",
+		o2un="results/intermediate_files/trimmed/AS/{sample}_2un.trim.fastq.gz"
 	params:
 		params = config["parameters"]["trimmomatic"]
 	conda:
 		srcdir("../envs/trimmomatic.yaml")
 	shell:
 		"trimmomatic SE {input.r1} {output.o1} {params.params}"
+
+rule fastqc_trim_pe:
+	input:
+		r1="results/intermediate_files/trimmed/AS/{sample}_1.fastq.gz",
+		r2="results/intermediate_files/trimmed/AS/{sample}_2.fastq.gz"
+	output:
+		fastqc_html = "results/intermediate_files/fastqc/trim/AS/{sample}_fastqc.html"
+	params:
+		output_folder = "results/intermediate_files/fastqc/trim/AS/"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
+	shell:
+		"fastqc -t {threads} {input.r1} {input.r2} -o {params} --extract"
+
+rule fastqc_trim_se:
+	input:
+		r1="results/intermediate_files/trimmed/AS/{sample}.fastq.gz"
+	output:
+		fastqc_html = "results/intermediate_files/fastqc/trim/AS/{sample}_fastqc.html"
+	params:
+		output_folder = "results/intermediate_files/fastqc/trim/AS/"
+	conda:
+		srcdir("../envs/fastqc.yaml")
+	threads: 4
+	shell:
+		"fastqc -t {threads} {input.r1} -o {params} --extract"
+
+rule multiqc_trim:
+	input:
+		sample = expand("results/intermediate_files/fastqc/trim/AS/{sample}_fastqc.html", sample=config["AS_samples"])
+	output:
+		output = "results/intermediate_files/multiqc/AS/multiqc_trim_report.html"
+	params:
+		input_dir = "results/intermediate_files/fastqc/trim/AS/",
+		output_dir =  "results/intermediate_files/multiqc/AS/"
+	conda:
+		srcdir("../envs/multiqc.yaml")
+	shell:
+		"multiqc {params.input_dir} -o {params.output_dir}"
 
 rule gunzipSE:
 	input:

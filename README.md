@@ -45,18 +45,26 @@ git clone --recursive https://github.com/muzafferarikan/gNOMO2.git
 
 # Setup
 ## Data
-Copy your raw data to the relevant subfolders within the `data` directory. For example:  
+Copy your raw data to the relevant subfolders within the `data` directory.  
 * If you have amplicon sequencing data, copy your files to `data/AS/raw`  
-* If you have metaproteomics data copy your files to `data/MP/spectra`.   
+* If you have metagenomics data, copy your files to `data/MG/raw`  
+* If you have metatranscriptomics data, copy your files to `data/MT/raw`  
+* If you have metaproteomics data, copy your files to `data/MP/spectra`.   
   
-**Important**: Please make sure sample names have following format: 
-* For AS, MG and MT samples: "samplename"_1.fastq.gz, "samplename"_2.fastq.gz  
-* For MP: "samplename".mgf
+**Important**: Please check sample format requirements below:  
+| Data | Library Layout | Sample Name Format  |
+|------|----------------|---------------------|
+| AS | PE <br> SE | samplename_1.fastq.gz, samplename_2.fastq.gz <br> samplename_1.fastq.gz |
+| MG | PE | samplename_1.fastq.gz, samplename_2.fastq.gz |
+| MT |  PE <br> SE | samplename_1.fastq.gz, samplename_2.fastq.gz <br> samplename_1.fastq.gz |
+| MP |  | samplename.mgf |
 
 ## Metadata
-gNOMO2 requires a metadata file to perform sample group comparisons. Create a tab delimited metadata file containig information about samples and place it in the `resources` folder.  
+gNOMO2 requires a metadata file to perform sample group comparisons. Create a tab delimited metadata file (named `metadata.txt`) containig information about samples and copy it to the `resources` folder.  
 
-**Important**: The name of first column in metadata file must be "SampleID" and metadata file should contain at least three columns in total.
+**Important**: 
+* The name of first column in metadata file must be "SampleID"  
+* Metadata file should contain at least three columns in total.
 
 ## Config
 After copying your data and metadata, run the following script from your main project folder to generate a config file:   
