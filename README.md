@@ -45,7 +45,7 @@ git clone --recursive https://github.com/muzafferarikan/gNOMO2.git
 
 # Setup
 ## Data
-Copy your raw data to the relevant subfolders within the `data` directory.  
+Copy your raw data to the relevant subfolders within the `data` directory:  
 * If you have amplicon sequencing data, copy your files to `data/AS/raw`  
 * If you have metagenomics data, copy your files to `data/MG/raw`  
 * If you have metatranscriptomics data, copy your files to `data/MT/raw`  
@@ -60,18 +60,17 @@ Copy your raw data to the relevant subfolders within the `data` directory.
 | MP |  | samplename.mgf |
 
 ## Metadata
-gNOMO2 requires a metadata file to perform sample group comparisons. Create a tab delimited metadata file (named `metadata.txt`) containig information about samples and copy it to the `resources` folder.  
+gNOMO2 requires a metadata file to perform sample group comparisons. Create a tab delimited metadata file (name it `metadata.txt`) containig information about samples and copy it to the `resources` folder.  
 
 **Important**: 
-* The name of first column in metadata file must be "SampleID"  
-* Metadata file should contain at least three columns in total.
+* The name of the first column in metadata file must be "SampleID"  
 
 ## Config
-After copying your data and metadata, run the following script from your main project folder to generate a config file:   
+After copying your data and metadata, run the following script from your main gNOMO2 project folder to generate a config file:   
 ```
 bash workflow/scripts/prepare_config.sh
 ```
-This script generates a `config.yaml` file within `config` folder based on contents of `data` directory. Review and modify analysis parameters in this file according to your analysis and metadata.
+This script generates a `config.yaml` file within `config` folder based on contents of `data` directory. Review and modify analysis parameters in this file if you need.
 
 # Running
 ## Running locally
@@ -110,13 +109,19 @@ When gNOMO2 pipeline starts, it generates a `results` folder within your project
 
 ## Final outputs
 The `final` folder includes:  
-* Differential abundance analysis results for each omics dataset (`diff_abun`)  
+* Integrated multi-omics analysis results (`integrated`)
+    * Differential abundance analysis results for each omics dataset (`diff_abun`)  
+    * Joint-visualization results (`combi`) 
+    * Pathway level integration results (`pathview`)  
+    * A proteogenomic database (`prot_db`)  
 
-* Integrated multi-omics analysis results (joint-visualization results (`combi`) and pathway level integration results (`pathview`))  
-
-* A proteogenomic database (`prot_db`)  
-
-* Results for each omics datasets (abundance tables, phyloseq objects and plots) within subfolders named accordingly (`AS`,`MG`,`MT`,`MP`). These files are suitable for further analyses using other microbiome analysis tools. 
+* Results for each omics dataset within folders named accordingly (`AS`,`MG`,`MT`,`MP`).
+    * Abundance tables
+    * Taxonomy tables 
+    * Phyloseq objects 
+    * Abundance plots 
+    
+    These files are suitable for further analyses using other microbiome analysis tools. 
 
 ## Intermediate outputs
 `intermediate` folder contains outputs of each step executed by the gNOMO2 pipeline. 
