@@ -26,7 +26,7 @@ dir.create("results/final/integrated")
 
 # Read metadata table, config file and unipept and emapper result files
 metadata <- read.table("resources/metadata.txt", header=TRUE, sep = "\t", fileEncoding = "UTF-8")
-metadata2 <- column_to_rownames(metadata, var = "SampleID")
+metadata2 <- column_to_rownames(metadata, var = "SampleID") %>% mutate(SampleNo = row_number())
 metadata3 <- sample_data(metadata2)
 
 # Read snakemake config file
@@ -153,5 +153,5 @@ if (omics == 2) {
 
 # Set up graphics device for PNG output
 svg("results/final/integrated/combi_plot.svg")
-plot(microMetaboIntConstr)
+plot(microMetaboIntConstr, samDf = metadata2, samCol = opt$group)
 dev.off()

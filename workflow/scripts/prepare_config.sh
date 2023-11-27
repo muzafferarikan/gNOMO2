@@ -14,15 +14,34 @@ format_files() {
     folder="$1"
     sample_name="$2"
 
-    r1_file="data/$folder/raw/${sample_name}_1.fastq.gz"
-    r2_file="data/$folder/raw/${sample_name}_2.fastq.gz"
+    r1_file_exists=0
+    r2_file_exists=0
 
-    if [ -f "$r1_file" ] && [ -f "$r2_file" ]; then
-        echo "      \"$sample_name\": [r1:\"$r1_file\", r2:\"$r2_file\"]" >> "$output_file"
-    elif [ -f "$r1_file" ]; then
-        echo "      \"$sample_name\": [r1:\"$r1_file\"]" >> "$output_file"
+    for file in "data/$folder/raw/${sample_name}"_{1,2}.fastq.gz; do
+        if [ -f "$file" ]; then
+            if [[ $file == *"1.fastq.gz" ]]; then
+                r1_file_exists=1
+            elif [[ $file == *"2.fastq.gz" ]]; then
+                r2_file_exists=1
+            fi
+        fi
+    done
+
+    if [ "$r1_file_exists" -eq 1 ] && [ "$r2_file_exists" -eq 1 ]; then
+        if ! grep -q "${folder}_layout: PE" "$output_file"; then
+            echo "${folder}_layout: PE" >> "$output_file"
+            echo "${folder}_samples:" >> "$output_file"
+        fi
+        echo "   \"$sample_name\": [r1:\"data/$folder/raw/${sample_name}_1.fastq.gz\", r2:\"data/$folder/raw/${sample_name}_2.fastq.gz\"]" >> "$output_file"
+    elif [ "$r1_file_exists" -eq 1 ]; then
+        if ! grep -q "${folder}_layout: SE" "$output_file"; then
+            echo "${folder}_layout: SE" >> "$output_file"
+            echo "${folder}_samples:" >> "$output_file"
+        fi
+        echo "   \"$sample_name\": [r1:\"data/$folder/raw/${sample_name}_1.fastq.gz\"]" >> "$output_file"
     fi
 }
+
 
 # Function to format the files for MP
 format_mp_files() {
@@ -84,75 +103,76 @@ EOF
     if [ -n "$omics_combination" ]; then
     	echo "omics_combination: \"$omics_combination\"" >> "$output_file"
     	echo >> "$output_file" # Empty line
-   		echo "Module${omics_combination}:" >> "$output_file" # Include the desired text
+   		echo "Module${omics_combination}:" >> "$output_file" # Include the desired text 
 
         case $omics_combination in
             "1")
                 cat <<EOF >> "$output_file"
-   host: ""
-   parameters:
-      trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
-      group: "Group"
-      taxa_rank: "Genus"
-      top_taxa: "11"
+host: ""
+parameters:
+   trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
+   group: "Group"
+   taxa_rank: "Genus"
+   top_taxa: "11"
 EOF
                 ;;
             "2")
                 cat <<EOF >> "$output_file"
-   host: ""
-   parameters:
-      trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
-      group: "Group"
-      taxa_rank: "Genus"
-      top_taxa: "11"
-      msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1"
+host: ""
+parameters:
+   trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
+   group: "Group"
+   taxa_rank: "Genus"
+   top_taxa: "11"
+   msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1"
 EOF
                 ;;
             "3")
                 cat <<EOF >> "$output_file"
-   omics: ["MG"]
-   parameters:
-      trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
-      augustus: "--species=human --protein=on --gff3=on --uniqueGeneId=true --codingseq=on"
-      group: "Group"
-      taxa_rank: "Genus"
-      top_taxa: "11"
-      msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1 -maxMissedCleavages 2"
+omics: ["MG"]
+parameters:
+   trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
+   augustus: "--species=human --protein=on --gff3=on --uniqueGeneId=true --codingseq=on"
+   group: "Group"
+   taxa_rank: "Genus"
+   top_taxa: "11"
+   msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1 -maxMissedCleavages 2"
 EOF
                 ;;
             "4")
                 cat <<EOF >> "$output_file"
-   omics: ["MG","MT"]
-   parameters:
-      trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
-      augustus: "--species=human --protein=on --gff3=on --uniqueGeneId=true --codingseq=on"
-      group: "Group"
-      taxa_rank: "Genus"
-      top_taxa: "11"
+omics: ["MG","MT"]
+parameters:
+   trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
+   augustus: "--species=human --protein=on --gff3=on --uniqueGeneId=true --codingseq=on"
+   group: "Group"
+   taxa_rank: "Genus"
+   top_taxa: "11"
 EOF
                 ;;
             "5")
                 cat <<EOF >> "$output_file"
-   omics: ["MG","MT"]
-   parameters:
-      trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
-      augustus: "--species=human --protein=on --gff3=on --uniqueGeneId=true --codingseq=on"
-      group: "Group"
-      taxa_rank: "Genus"
-      top_taxa: "11"
-      msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1 -maxMissedCleavages 2"
+omics: ["MG","MT"]
+parameters:
+   trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
+   augustus: "--species=human --protein=on --gff3=on --uniqueGeneId=true --codingseq=on"
+   group: "Group"
+   taxa_rank: "Genus"
+   top_taxa: "11"
+   msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1 -maxMissedCleavages 2"
 EOF
                 ;;
             "6")
                 cat <<EOF >> "$output_file"
-   omics: ["MG","MT"]
-   parameters:
-      trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
-      augustus: "--species=human --protein=on --gff3=on --uniqueGeneId=true --codingseq=on"
-      group: "Group"
-      taxa_rank: "Genus"
-      top_taxa: "11"
-      msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1 -maxMissedCleavages 2"
+omics: ["MG","MT"]
+host: ""
+parameters:
+   trimmomatic: "SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:resources/adapters.fa:2:30:10"
+   augustus: "--species=human --protein=on --gff3=on --uniqueGeneId=true --codingseq=on"
+   group: "Group"
+   taxa_rank: "Genus"
+   top_taxa: "11"
+   msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1 -maxMissedCleavages 2"
 EOF
 
                 ;;
@@ -172,7 +192,6 @@ fi
         # List files for AS folder
         if [ -n "$AS_non_empty" ]; then
         	echo >> "$output_file" # Empty line
-            echo "   AS_samples:" >> "$output_file"
             for file in data/AS/raw/*_1.fastq.gz; do
                 base=$(basename "$file" _1.fastq.gz)
                 format_files "AS" "$base"
@@ -182,7 +201,6 @@ fi
         # List files for MG folder
         if [ -n "$MG_non_empty" ]; then
             echo >> "$output_file" # Empty line
-            echo "   MG_samples:" >> "$output_file"
             for file in data/MG/raw/*_1.fastq.gz; do
                 base=$(basename "$file" _1.fastq.gz)
                 format_files "MG" "$base"
@@ -192,7 +210,6 @@ fi
         # List files for MT folder
         if [ -n "$MT_non_empty" ]; then
             echo >> "$output_file" # Empty line
-            echo "   MT_samples:" >> "$output_file"
             for file in data/MT/raw/*_1.fastq.gz; do
                 base=$(basename "$file" _1.fastq.gz)
                 format_files "MT" "$base"
@@ -202,7 +219,7 @@ fi
         # List files for MP folder
         if [ -n "$MP_non_empty" ]; then
             echo >> "$output_file" # Empty line
-            echo "   MP_samples:" >> "$output_file"
+            echo "MP_samples:" >> "$output_file"
             for file in data/MP/spectra/*.mgf; do
                 base=$(basename "$file" .mgf)
                 format_mp_files "$base"

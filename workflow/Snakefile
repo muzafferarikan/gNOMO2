@@ -8,47 +8,44 @@ omics_combination = config['omics_combination']
 if omics_combination == '1':
     module Module1:
         snakefile: "rules/Module1.smk"
-        config: config["Module1"]
+        config: config
 
     use rule * from Module1 as Module1_*
 
 elif omics_combination == '2':
     module Module2:
         snakefile: "rules/Module2.smk"
-        config: config["Module2"]
+        config: config
 
     use rule * from Module2 as Module2_*
 
 elif omics_combination == '3':
     module Module3:
         snakefile: "rules/Module3.smk"
-        config: config["Module3"]
+        config: config
 
     use rule * from Module3 as Module3_*
 
 elif omics_combination == '4':
     module Module4:
         snakefile: "rules/Module4.smk"
-        config: config["Module4"]
+        config: config
 
     use rule * from Module4 as Module4_*
 
 elif omics_combination == '5':
     module Module5:
         snakefile: "rules/Module5.smk"
-        config: config["Module5"]
+        config: config
 
     use rule * from Module5 as Module5_*
 
 elif omics_combination == '6':
     module Module6:
         snakefile: "rules/Module6.smk"
-        config: config["Module6"]
+        config: config
 
-    use rule * from Module6 as Module6_*
+    use rule * from Module6
 
 else:
     print("Invalid value!\nPlease enter a valid omics combination number(1-6).")
-
-
-
