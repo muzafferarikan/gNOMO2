@@ -126,8 +126,8 @@ rule kaiju_db:
 	shell:
 		"""
 		cd results/intermediate_files/kaiju/kaiju_db/
-		wget https://kaiju.binf.ku.dk/database/kaiju_db_nr_2020-05-25.tgz
-		tar xzf kaiju_db_nr_2020-05-25.tgz
+		wget https://kaiju.binf.ku.dk/database/kaiju_db_nr_2023-05-10.tgz
+		tar xzf kaiju_db_nr_2023-05-10.tgz
 		"""
 
 rule kaiju_classify:
@@ -319,15 +319,15 @@ rule interproscan_setup:
 		"""
 		mkdir -p results/intermediate_files/interproscan 
 		cd results/intermediate_files/interproscan
-		wget ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.62-94.0/interproscan-5.62-94.0-64-bit.tar.gz >> interproscan_setup.txt
-		wget ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.62-94.0/interproscan-5.62-94.0-64-bit.tar.gz.md5 >> interproscan_setup.txt
+		wget https://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.65-97.0/interproscan-5.65-97.0-64-bit.tar.gz >> interproscan_setup.txt
+		wget https://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.65-97.0/interproscan-5.65-97.0-64-bit.tar.gz.md5 >> interproscan_setup.txt
 
 		# Recommended checksum to confirm the download was successful:
 		md5sum -c interproscan-**.tar.gz.md5 >> interproscan_setup.txt
 		# Must return *interproscan-**.tar.gz: OK*
 		# If not - try downloading the file again as it may be a corrupted copy.
 		tar -pxvzf interproscan-**.tar.gz >> interproscan_setup.txt
-		cd interproscan-5.62-94.0
+		cd interproscan-5.65-97.0
 		python3 setup.py -f interproscan.properties
 	"""
 

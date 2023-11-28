@@ -38,20 +38,14 @@ rule trim_se:
 	input:
 		r1="data/MT/raw/{sample}_1.fastq.gz"
 	output:
-		o1="results/intermediate_files/trimmed/MT/MT_{sample}_1.fastq.gz",
-		o2="results/intermediate_files/trimmed/MT/MT_{sample}_2.fastq.gz",
-		o1un="results/intermediate_files/trimmed/MT/MT_{sample}_1un.trim.fastq.gz",
-		o2un="results/intermediate_files/trimmed/MT/MT_{sample}_2un.trim.fastq.gz"
+		o1="results/intermediate_files/trimmed/MT/MT_{sample}_1.fastq.gz"
 	params:
 		params = config["parameters"]["trimmomatic"]
 	conda:
 		srcdir("../envs/trimmomatic.yaml")
 	threads: 16
 	shell:
-		"""
-		trimmomatic SE -threads {threads} {input.r1} {output.o1} {params.params}
-		touch {output.o2} {output.o1un} {output.o2un}
-		"""
+		"trimmomatic SE -threads {threads} {input.r1} {output.o1} {params.params}"
 
 rule fastqc_trim_se:
 	input:

@@ -10,16 +10,16 @@ configfile: "config/config.yaml"
 layout = config['MT_layout']
 
 def define_rules(layout_type, MT_snakefile):
-	module MT:
-		snakefile: MT_snakefile
-		config: config
-	use rule * from MT as MT_*
-
 	module MG:
 		snakefile: "MG.smk"
 		config: config
 	use rule * from MG as MG_*
 
+	module MT:
+		snakefile: MT_snakefile
+		config: config
+	use rule * from MT as MT_*
+	
 	rule merge_db:
 		input:
 			mg_based_db = "results/final/prot_db/mg_based_database.fa",
