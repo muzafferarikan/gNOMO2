@@ -4,7 +4,7 @@
 If you use this tool, please cite the preprint:  
   
 Arikan M, Muth T. (2023) gNOMO2: a comprehensive and modular pipeline for integrated 
-multi-omics analyses of microbiomes. bioRxiv. doi: Link
+multi-omics analyses of microbiomes. bioRxiv. doi: https://doi.org/10.1101/2023.12.03.569767
 
 # Table of contents
 - [Overview](#overview)
@@ -57,7 +57,7 @@ Copy your raw data to the relevant subfolders within the `data` directory:
 | AS | PE <br> SE | samplename_1.fastq.gz, samplename_2.fastq.gz <br> samplename_1.fastq.gz |
 | MG | PE | samplename_1.fastq.gz, samplename_2.fastq.gz |
 | MT |  PE <br> SE | samplename_1.fastq.gz, samplename_2.fastq.gz <br> samplename_1.fastq.gz |
-| MP |  | samplename.mgf |
+| MP | DDA | samplename.mgf |
 
 ## Metadata
 gNOMO2 requires a metadata file to perform sample group comparisons. Create a tab delimited metadata file (name it `metadata.txt`) containig information about samples and copy it to the `resources` folder.  
