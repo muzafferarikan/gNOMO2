@@ -114,6 +114,9 @@ parameters:
    group: "Group"
    taxa_rank: "Genus"
    top_taxa: "11"
+   covariates: ""
+   transformation: "LOG" # [Choices: "TSS", "CLR", "CSS", "NONE", "TMM"]
+   normalization: "TSS"  # [Choices: "LOG", "LOGIT", "AST", "NONE"]
 EOF
                 ;;
             "2")
@@ -125,6 +128,9 @@ parameters:
    taxa_rank: "Genus"
    top_taxa: "11"
    msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1"
+   covariates: ""
+   transformation: "LOG" # [Choices: "TSS", "CLR", "CSS", "NONE", "TMM"]
+   normalization: "TSS"  # [Choices: "LOG", "LOGIT", "AST", "NONE"]
 EOF
                 ;;
             "3")
@@ -137,6 +143,9 @@ parameters:
    taxa_rank: "Genus"
    top_taxa: "11"
    msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1 -maxMissedCleavages 2"
+   covariates: ""
+   transformation: "LOG" # [Choices: "TSS", "CLR", "CSS", "NONE", "TMM"]
+   normalization: "TSS"  # [Choices: "LOG", "LOGIT", "AST", "NONE"]
 EOF
                 ;;
             "4")
@@ -148,6 +157,9 @@ parameters:
    group: "Group"
    taxa_rank: "Genus"
    top_taxa: "11"
+   covariates: ""
+   transformation: "LOG" # [Choices: "TSS", "CLR", "CSS", "NONE", "TMM"]
+   normalization: "TSS"  # [Choices: "LOG", "LOGIT", "AST", "NONE"]
 EOF
                 ;;
             "5")
@@ -160,6 +172,9 @@ parameters:
    taxa_rank: "Genus"
    top_taxa: "11"
    msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1 -maxMissedCleavages 2"
+   covariates: ""
+   transformation: "LOG" # [Choices: "TSS", "CLR", "CSS", "NONE", "TMM"]
+   normalization: "TSS"  # [Choices: "LOG", "LOGIT", "AST", "NONE"]
 EOF
                 ;;
             "6")
@@ -173,6 +188,9 @@ parameters:
    taxa_rank: "Genus"
    top_taxa: "11"
    msgf: "-t 6ppm -tda 1 -m 1 -inst 1 -e 1 -maxMissedCleavages 2"
+   covariates: ""
+   transformation: "LOG" # [Choices: "TSS", "CLR", "CSS", "NONE", "TMM"]
+   normalization: "TSS"  # [Choices: "LOG", "LOGIT", "AST", "NONE"]
 EOF
 
                 ;;

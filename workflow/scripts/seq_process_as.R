@@ -20,11 +20,13 @@ library(optparse)
 commandArgs(trailing = TRUE)
 
 option_list <- list(
-  make_option(c("-g", "--group"), type = "character", default = "Group", help = "Enter group name"),
-  make_option(c("-t", "--taxa_rank"), type = "character", default = "Genus", help = "Enter taxa rank"),
-  make_option(c("-n", "--top_taxa"), type = "character", default = "5", help = "Enter most abundant taxa number")
+  make_option(c("-g", "--group"), type="character", default="Group", help="enter group name"),
+  make_option(c("-t", "--taxa_rank"), type = "character", default="Genus", help = "enter taxa rank"),
+  make_option(c("-n", "--top_taxa"), type = "character", default = "5", help = "Enter most abundant taxa number"),
+  make_option(c("-c", "--covariates"), type = "character", default = "", help = "Enter covariates"),
+  make_option(c("-f", "--transformation"), type = "character", default = "LOG", help = "Enter transformation type"),
+  make_option(c("-m", "--normalization"), type = "character", default = "TSS", help = "Enter normalization type")
 )
-
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # Import metadata file 
@@ -111,11 +113,16 @@ topn_taxa_3 <- as.character(topn_taxa_2[topn_taxa_2 != ""])
 ps_clean_rank <- aggregate_taxa(ps_clean, level = opt$taxa_rank)
 otu <- as(otu_table(ps_clean_rank),"matrix") %>% as.data.frame()
 
+# Set fixed effects for differential abundance analysis
+fixed_effects <- c(opt$group, opt$covariates)
+
 # Perform differential abundance analysis
 maaslin_results = Maaslin2::Maaslin2(input_data = otu,
                                      input_metadata = metadata,
                                      output = "results/final/diff_abun/taxa-maaslin2-AS",
-                                     fixed_effects = opt$group,
+                                     fixed_effects = fixed_effects,
+                                     transform = opt$transformation,
+                                     normalization = opt$normalization,
                                      standardize = FALSE
                                      )
 

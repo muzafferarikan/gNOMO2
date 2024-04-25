@@ -3,10 +3,10 @@ channels:
   - bioconda
   - conda-forge
 dependencies:
-  - bioconductor-phyloseq=1.38.0
-  - bioconductor-maaslin2=1.8.0
-  - r-tidyverse=1.3.2
-  - r-optparse=1.7.3
+  - bioconductor-phyloseq
+  - bioconductor-maaslin2
+  - r-tidyverse
+  - r-optparse
   - bioconductor-dada2
   - bioconductor-microbiome
   - bioconductor-combi

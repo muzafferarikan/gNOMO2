@@ -92,11 +92,12 @@ rule merge_pe:
 		f2="results/intermediate_files/merged/AS/{sample}.notCombined_1.fastq",
 		f3="results/intermediate_files/merged/AS/{sample}.notCombined_2.fastq"
 	params:
-		dir = "results/intermediate_files/merged/AS/"
+		dir = "results/intermediate_files/merged/AS/",
+		gid = "{sample}"
 	conda:
 		srcdir("../envs/flash2.yaml")
 	shell:
-		"flash2 {input.o1} {input.o2} -d {params.dir} --allow-outies"
+		"flash2 {input.o1} {input.o2} -d {params.dir} -o {params.gid} --allow-outies"
 
 rule download_silvadb:
 	output:
@@ -125,11 +126,14 @@ rule dada2:
 	params:
 		param1 = config["parameters"]["group"],
 		param2 = config["parameters"]["taxa_rank"],
-		param3 = config["parameters"]["top_taxa"]	
+		param3 = config["parameters"]["top_taxa"],
+		param4 = config["parameters"]["covariates"],
+		param5 = config["parameters"]["transformation"],
+		param6 = config["parameters"]["normalization"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/seq_process_as.R -g {params.param1} -t {params.param2} -n {params.param3}"
+		"Rscript workflow/scripts/seq_process_as.R -g {params.param1} -t {params.param2} -n {params.param3} -c {params.param4} -f {params.param5} -m {params.param6}"
 
 rule add_host:
 	input:

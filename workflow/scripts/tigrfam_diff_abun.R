@@ -15,9 +15,11 @@ library(optparse)
 commandArgs(trailing=TRUE)
 
 option_list <- list( 
-  make_option(c("-g", "--group"), type="character", default="Group", 
-              help="enter group name"))
-
+  make_option(c("-g", "--group"), type="character", default="Group", help="enter group name")
+  make_option(c("-c", "--covariates"), type = "character", default = "", help = "Enter covariates"),
+  make_option(c("-f", "--transformation"), type = "character", default = "LOG", help = "Enter transformation type"),
+  make_option(c("-m", "--normalization"), type = "character", default = "TSS", help = "Enter normalization type")
+  )
 opt <- parse_args(OptionParser(option_list=option_list))
 
 ### Import and format metadata, TIGRFAM, and tigrfam result files ###
@@ -87,12 +89,17 @@ perform_diff_abundance_analysis <- function(prefix, output_suffix) {
   merged_annotated_final <- sum_duplicates(merged_annotated) %>%
     column_to_rownames(var = "role_subrole")
   
+# Set fixed effects for differential abundance analysis
+fixed_effects <- c(opt$group, opt$covariates)
+
   # Perform Maaslin2 analysis
   maaslin_results <- Maaslin2::Maaslin2(
     input_data = merged_annotated_final,
     input_metadata = metadata,
     output = paste0("results/final/diff_abun/", output_suffix),
-    fixed_effects = opt$group,
+    fixed_effects = fixed_effects,
+    transform = opt$transformation,
+    normalization = opt$normalization,
     standardize = FALSE
   )
 }

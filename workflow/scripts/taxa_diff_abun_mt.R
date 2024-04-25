@@ -18,7 +18,10 @@ commandArgs(trailing=TRUE)
 option_list <- list(
   make_option(c("-g", "--group"), type="character", default="Group", help="enter group name"),
   make_option(c("-t", "--taxa_rank"), type = "character", default="Genus", help = "enter taxa rank"),
-  make_option(c("-n", "--top_taxa"), type = "character", default = "5", help = "Enter most abundant taxa number")
+  make_option(c("-n", "--top_taxa"), type = "character", default = "5", help = "Enter most abundant taxa number"),
+  make_option(c("-c", "--covariates"), type = "character", default = "", help = "Enter covariates"),
+  make_option(c("-f", "--transformation"), type = "character", default = "LOG", help = "Enter transformation type"),
+  make_option(c("-m", "--normalization"), type = "character", default = "TSS", help = "Enter normalization type")
 )
 opt <- parse_args(OptionParser(option_list=option_list))
 
@@ -67,11 +70,16 @@ merged_df <- merged_df[!(rownames(merged_df) == "unclassified"), ]
 merged_df <- merged_df[!(rownames(merged_df) == "Viruses"), ]
 rownames(merged_df)[rownames(merged_df) == "cannot be assigned to a (non-viral) genus"] <- "Unassigned_genus"
 
+# Set fixed effects for differential abundance analysis
+fixed_effects <- c(opt$group, opt$covariates)
+
 #Perform differential abundance analysis
 maaslin_results = Maaslin2::Maaslin2(input_data = merged_df,
                                      input_metadata = metadata,
                                      output = "results/final/diff_abun/taxa-maaslin2-MT",
-                                     fixed_effects = opt$group,
+                                     fixed_effects = fixed_effects,
+                                     transform = opt$transformation,
+                                     normalization = opt$normalization,
                                      standardize = FALSE
                                      )
 

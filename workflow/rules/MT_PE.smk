@@ -155,11 +155,14 @@ rule diff_abund:
 	params:
 		param1 = config["parameters"]["group"],
 		param2 = config["parameters"]["taxa_rank"],
-		param3 = config["parameters"]["top_taxa"]
+		param3 = config["parameters"]["top_taxa"],
+		param4 = config["parameters"]["covariates"],
+		param5 = config["parameters"]["transformation"],
+		param6 = config["parameters"]["normalization"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/taxa_diff_abun_mt.R -g {params.param1} -t {params.param2} -n {params.param3}"
+		"Rscript workflow/scripts/taxa_diff_abun_mt.R -g {params.param1} -t {params.param2} -n {params.param3} -c {params.param4} -f {params.param5} -m {params.param6}"
 
 rule rnaspades_pe:
 	input:
@@ -323,11 +326,14 @@ rule tigrfam_diff:
 		diff_abun_tigrfam_results_mt = "results/final/diff_abun/tigrfam-maaslin2-MT/maaslin2.log"
 	params:
 		outdir = "results/final/diff_abun/",
-		param1 = config["parameters"]["group"]
+		param1 = config["parameters"]["group"],
+		param4 = config["parameters"]["covariates"],
+		param5 = config["parameters"]["transformation"],
+		param6 = config["parameters"]["normalization"]
 	conda:
 		srcdir("../envs/R.yaml")
 	shell:
-		"Rscript workflow/scripts/tigrfam_diff_abun.R --group {params.param1}"
+		"Rscript workflow/scripts/tigrfam_diff_abun.R -g {params.param1} -c {params.param4} -f {params.param5} -m {params.param6}"
 
 rule eggnog:
 	input:
