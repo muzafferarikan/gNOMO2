@@ -32,7 +32,7 @@ To use gNOMO2, ensure you have `conda` and  `snakemake` installed:
   
 **2. Create a Snakemake environment in conda**:
 ```
-conda create -n snakemake -c bioconda snakemake=7.15.2
+conda create -n snakemake bioconda::snakemake=7.15.2 conda-forge::mamba
 ```
   
 
