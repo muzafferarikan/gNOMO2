@@ -3,7 +3,7 @@
 
 If you use this tool, please cite:  
   
-Arikan M, Muth T. (2023) gNOMO2: a comprehensive and modular pipeline for integrated 
+Arikan M, Muth T. (2024) gNOMO2: a comprehensive and modular pipeline for integrated 
 multi-omics analyses of microbiomes. GigaScience, 13, giae038, https://doi.org/10.1093/gigascience/giae038
 
 
