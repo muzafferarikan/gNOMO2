@@ -4,7 +4,8 @@
 If you use this tool, please cite the preprint:  
   
 Arikan M, Muth T. (2023) gNOMO2: a comprehensive and modular pipeline for integrated 
-multi-omics analyses of microbiomes. bioRxiv. doi: https://doi.org/10.1101/2023.12.03.569767
+multi-omics analyses of microbiomes. GigaScience, 13, giae038, https://doi.org/10.1093/gigascience/giae038
+
 
 # Table of contents
 - [Overview](#overview)
