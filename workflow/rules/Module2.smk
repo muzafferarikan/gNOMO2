@@ -9,15 +9,25 @@ configfile: "config/config.yaml"
 layout = config['AS_layout']
 
 def define_rules(layout_type, AS_snakefile):
-    module AS:
-        snakefile: AS_snakefile
-        config: config
-    use rule * from AS as AS_*
+	module AS:
+		snakefile: AS_snakefile
+		config: config
+	use rule * from AS as AS_*
 
-    module MP:
-        snakefile: "MP.smk"
-        config: config
-    use rule * from MP as MP_*
+	rule final_rmdup:
+		input:
+			as_based_db = "results/final/prot_db/as_based_database.fa"
+		output:
+			"results/final/prot_db/db_ready.fasta"
+		conda:
+			srcdir("../envs/seqkit.yaml")
+		shell:
+			"seqkit rmdup -i -s < {input} > {output}"
+
+	module MP:
+		snakefile: "MP.smk"
+		config: config
+	use rule * from MP as MP_*
 
 	rule visual_integration:
 		input:
